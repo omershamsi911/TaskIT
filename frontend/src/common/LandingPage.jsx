@@ -12,9 +12,12 @@ function LandingPage() {
         </h1>
 
         <div className="flex items-center gap-4">
-          <button className="text-gray-400 hover:text-white transition">
-            Become a Provider
-          </button>
+          <Link to="/login">
+            <button className="text-gray-400 hover:text-white transition">
+              Become a Provider
+            </button>
+          
+          </Link>
 
           <Link to="/get-providers">
             <button className="px-5 py-2.5 bg-green-500 hover:bg-green-600 transition text-black font-semibold rounded-xl shadow-lg shadow-green-500/20">
