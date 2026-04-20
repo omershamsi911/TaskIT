@@ -18,8 +18,8 @@ async def test_backend():
         print("2️⃣ Testing user signup...")
         signup_data = {
             "full_name": "Test User",
-            "phone": "+923001234567",
-            "email": "test@example.com",
+            "phone": "+923001534567",
+            "email": "test@example2.com",
             "password": "test123",  # Short, simple password
             "role": "customer"
         }
@@ -30,7 +30,8 @@ async def test_backend():
             print(f"   Access Token: {tokens['access_token'][:50]}...\n")
             access_token = tokens['access_token']
         else:
-            print(f"   ❌ Signup failed: {response.json()}\n")
+            print(f"❌ Signup failed: {response.status_code}")
+            print("Raw response:", response.text)
             return
         
         # 3. Test Get Current User
@@ -64,7 +65,8 @@ async def test_backend():
             address = response.json()
             print(f"   ✅ Address added: {address['address_line1']}\n")
         else:
-            print(f"   ❌ Failed: {response.json()}\n")
+            print(f"❌ Signup failed: {response.status_code}")
+            print("Raw response:", response.text)
         
         # 5. Test Search Providers
         print("5️⃣ Testing provider search...")
@@ -77,7 +79,8 @@ async def test_backend():
             providers = response.json()
             print(f"   ✅ Found {len(providers)} providers\n")
         else:
-            print(f"   ❌ Failed: {response.json()}\n")
+            print(f"❌ Signup failed: {response.status_code}")
+            print("Raw response:", response.text)
         
         # 6. Test AI Matching
         print("6️⃣ Testing AI provider matching...")

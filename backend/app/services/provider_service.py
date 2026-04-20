@@ -1,10 +1,14 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
-from app.models.provider import Provider, ProviderService
+from sqlalchemy import select, func, or_
+# from app.models.provider import Provider, ProviderService
+from app.models.provider import Provider
+from app.models.provider import ProviderService as ProviderServiceModel
+from app.models.category import Subcategory
 from app.models.user import User
 from app.schemas.provider import ProviderSearchFilters, ProviderServiceCreate
 from geopy.distance import geodesic
 from fastapi import HTTPException
+from typing import Optional, List
 
 class ProviderService:
     def __init__(self, db: AsyncSession):
@@ -20,9 +24,9 @@ class ProviderService:
         # Apply filters
         if filters.category_id:
             # Join services and subcategories
-            stmt = stmt.join(ProviderService).join(Subcategory).where(Subcategory.category_id == filters.category_id)
+            stmt = stmt.join(ProviderServiceModel).join(Subcategory).where(Subcategory.category_id == filters.category_id)
         if filters.subcategory_id:
-            stmt = stmt.join(ProviderService).where(ProviderService.subcategory_id == filters.subcategory_id)
+            stmt = stmt.join(ProviderServiceModel).where(ProviderServiceModel.subcategory_id == filters.subcategory_id)
         if filters.min_rating:
             stmt = stmt.where(Provider.avg_rating >= filters.min_rating)
 
@@ -64,8 +68,26 @@ class ProviderService:
         return provider
 
     async def create_service(self, provider_id: int, data: ProviderServiceCreate):
-        service = ProviderService(provider_id=provider_id, **data.dict())
+        service = ProviderServiceModel(provider_id=provider_id, **data.dict())
         self.db.add(service)
         await self.db.commit()
         await self.db.refresh(service)
         return service
+    
+    async def get_all_services(
+        self,
+        skip: int = 0,
+        limit: int = 100
+    ):
+        """Get all services from all providers"""
+        try:
+            query = select(ProviderServiceModel).where(
+                ProviderServiceModel.is_active == True
+            ).offset(skip).limit(limit)
+            
+            result = await self.db.execute(query)
+            services = result.scalars().all()
+            
+            return services
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error fetching services: {str(e)}")

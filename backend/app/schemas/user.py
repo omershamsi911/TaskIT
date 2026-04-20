@@ -22,7 +22,7 @@ class UserResponse(BaseModel):
 class AddressCreate(BaseModel):
     label: str = "Home"
     address_line1: str
-    address_line2: Optional[str]
+    address_line2: Optional[str] = None
     city: str
     province: str
     postal_code: Optional[str]
