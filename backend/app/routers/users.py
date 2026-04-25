@@ -5,6 +5,7 @@ from app.core.dependencies import get_current_active_user
 from app.core.database import get_db
 from app.schemas.user import UserResponse, AddressCreate, AddressResponse
 from app.services.user_service import UserService
+from app.services.admin_service import AdminService
 
 router = APIRouter()
 
@@ -48,3 +49,9 @@ async def delete_address(
     service = UserService(db)
     await service.delete_address(address_id, current_user.id)
     return {"message": "Address deleted"}
+
+@router.get("/stats")
+async def get_public_stats(db: AsyncSession = Depends(get_db)):
+    """Public platform stats — no auth required"""
+    service = AdminService(db)
+    return await service.get_platform_stats()

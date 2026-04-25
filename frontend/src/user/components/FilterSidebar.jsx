@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTheme } from "../../hooks/useTheme";
 
 const CATEGORIES = [
   "Plumbing", "Electrician", "Cleaning", "Tutoring",
@@ -22,6 +23,7 @@ const SectionHeading = ({ label }) => (
 );
 
 export default function FilterSidebar() {
+  const { C, CR, IK, CR_ALT, LIGHT_IK } = useTheme();
   const [priceMin, setPriceMin]                     = useState("");
   const [priceMax, setPriceMax]                     = useState("");
   const [minRating, setMinRating]                   = useState(null);

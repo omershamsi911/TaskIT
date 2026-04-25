@@ -1,160 +1,185 @@
 // src/pages/Login.jsx
 import { useState } from "react";
 import { handleEmailLogin } from "../../../handlers/auth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { useTheme } from "../../hooks/useTheme";
 
+// ─── PAGE ─────────────────────────────────────────────────────────────────────
 export default function Login() {
+  const { C, CR, IK, CR_ALT, LIGHT_IK } = useTheme();
   const [form, setForm] = useState({ email: "", password: "" });
   const [focused, setFocused] = useState(null);
+  const [error, setError] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
   const onSubmit = async (e) => {
     e.preventDefault();
+    setError(null);
+    setIsSubmitting(true);
+
     try {
       const data = await handleEmailLogin(form);
-      // localStorage.setItem("token", res.access_token);
-      navigate("/user");
-      console.log("Logged in:", data);
+      
+      localStorage.setItem("access_token", data.access_token);
+      if (data.refresh_token) {
+        localStorage.setItem("refresh_token", data.refresh_token);
+      }
+      
+      navigate("/");
     } catch (err) {
-      console.error(err);
+      const message = err?.detail || "Login failed. Please try again.";
+      setError(message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const inputStyle = (field) => ({
-    width: "100%",
-    padding: "14px 16px",
-    background: "transparent",
-    border: "1px solid",
-    borderColor: focused === field ? "#FF5733" : "#1a1a1a",
-    borderRadius: 0,
-    outline: "none",
-    color: "#1a1a1a",
-    fontFamily: "'Arial Black', 'Helvetica Neue', Arial, sans-serif",
-    fontSize: "11px",
-    fontWeight: "900",
-    letterSpacing: "0.1em",
-    transition: "border-color 0.1s",
-  });
+  const handleInputChange = (field, value) => {
+    setForm({ ...form, [field]: value });
+    if (error) setError(null);
+  };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center relative"
-      style={{ background: "#F5F0E6", fontFamily: "'Arial Black', 'Helvetica Neue', Arial, sans-serif" }}
-    >
+    <div className="min-h-screen font-sans relative" style={{ background: CR, color: IK }}>
       {/* Grid overlay */}
-      <div
-        className="pointer-events-none fixed inset-0 z-0"
-        style={{
-          backgroundImage: `
-            linear-gradient(to right, #FF573308 1px, transparent 1px),
-            linear-gradient(to bottom, #FF573308 1px, transparent 1px)
-          `,
-          backgroundSize: "80px 80px",
-        }}
-      />
+      <div className="pointer-events-none fixed inset-0 z-0 bg-grid-coral bg-grid" />
 
       {/* Top-left wordmark */}
-      <a
-        href="/"
-        className="fixed top-0 left-0 z-20 px-6 py-4 border-b border-r text-sm font-black uppercase tracking-widest"
-        style={{ borderColor: "#1a1a1a", color: "#FF5733", textDecoration: "none", background: "#F5F0E6" }}
+      <Link
+        to="/"
+        className="fixed top-0 left-0 z-20 px-6 py-4 border-b border-r text-sm font-black uppercase tracking-superwide no-underline"
+        style={{ borderColor: IK, color: C, background: CR }}
       >
         TASKIT
-      </a>
+      </Link>
 
       {/* Section label */}
       <div
-        className="fixed top-0 right-0 z-20 px-6 py-4 border-b border-l text-xs font-black uppercase tracking-widest opacity-30"
-        style={{ borderColor: "#1a1a1a", background: "#F5F0E6" }}
+        className="fixed top-0 right-0 z-20 px-6 py-4 border-b border-l text-2xs font-black uppercase tracking-superwide"
+        style={{ borderColor: IK, background: CR, color: LIGHT_IK }}
       >
         § LOGIN
       </div>
 
       {/* Card */}
-      <div
-        className="relative z-10 w-full border"
-        style={{ maxWidth: 480, borderColor: "#1a1a1a", background: "#F5F0E6" }}
-      >
-        {/* Header band */}
+      <div className="min-h-screen flex items-center justify-center p-4">
         <div
-          className="px-8 py-6 border-b"
-          style={{ borderColor: "#1a1a1a", background: "#1a1a1a" }}
+          className="relative z-10 w-full border"
+          style={{ maxWidth: 480, borderColor: IK, background: CR }}
         >
-          <h1
-            className="font-black uppercase leading-none"
-            style={{ fontSize: "2.5rem", color: "#F5F0E6", letterSpacing: "-0.02em" }}
-          >
-            LOGIN
-            <br />
-            <span style={{ color: "#FF5733" }}>TO TASKIT.</span>
-          </h1>
-        </div>
-
-        {/* Form body */}
-        <form onSubmit={onSubmit} className="px-8 py-8 flex flex-col gap-0">
-
-          <div className="border-b mb-0" style={{ borderColor: "#1a1a1a" }}>
-            <label className="block text-xs font-black tracking-widest uppercase mb-2 opacity-40">
-              Email Address
-            </label>
-            <input
-              type="email"
-              placeholder="YOUR@EMAIL.COM"
-              style={inputStyle("email")}
-              onFocus={() => setFocused("email")}
-              onBlur={() => setFocused(null)}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-            />
-          </div>
-
-          <div className="pt-6 mb-8">
-            <label className="block text-xs font-black tracking-widest uppercase mb-2 opacity-40">
-              Password
-            </label>
-            <input
-              type="password"
-              placeholder="••••••••••••"
-              style={inputStyle("password")}
-              onFocus={() => setFocused("password")}
-              onBlur={() => setFocused(null)}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="w-full py-4 font-black text-xs uppercase tracking-widest transition-all duration-100"
-            style={{
-              background: "#FF5733",
-              color: "#F5F0E6",
-              border: "2px solid #FF5733",
-              cursor: "pointer",
-              letterSpacing: "0.1em",
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = "#1a1a1a"; e.currentTarget.style.borderColor = "#1a1a1a"; }}
-            onMouseLeave={e => { e.currentTarget.style.background = "#FF5733"; e.currentTarget.style.borderColor = "#FF5733"; }}
-          >
-            LOGIN →
-          </button>
-
+          {/* Header band */}
           <div
-            className="mt-6 pt-6 border-t flex items-center justify-center"
-            style={{ borderColor: "#1a1a1a" }}
+            className="px-8 py-6 border-b"
+            style={{ borderColor: IK, background: IK }}
           >
-            <p className="text-xs font-black uppercase tracking-widest opacity-40">
-              No account?&nbsp;
-            </p>
-            <a
-              href="/signup"
-              className="text-xs font-black uppercase tracking-widest transition-colors duration-100"
-              style={{ color: "#FF5733", textDecoration: "none" }}
-              onMouseEnter={e => { e.currentTarget.style.color = "#1a1a1a"; }}
-              onMouseLeave={e => { e.currentTarget.style.color = "#FF5733"; }}
+            <h1
+              className="font-black uppercase leading-none"
+              style={{ fontSize: "2.5rem", color: CR, letterSpacing: "-0.02em" }}
             >
-              SIGN UP →
-            </a>
+              LOGIN
+              <br />
+              <span style={{ color: C }}>TO TASKIT.</span>
+            </h1>
           </div>
-        </form>
+
+          {/* Error banner */}
+          {error && (
+            <div
+              className="flex items-center gap-3 px-6 py-3 border-b"
+              style={{ borderColor: C, background: "rgba(255,87,51,0.06)" }}
+            >
+              <span className="text-sm font-black" style={{ color: C }}>!</span>
+              <span className="text-2xs font-black uppercase tracking-superwide" style={{ color: C }}>
+                {error}
+              </span>
+            </div>
+          )}
+
+          {/* Form body */}
+          <form onSubmit={onSubmit} className="px-8 py-8 flex flex-col gap-0">
+
+            {/* Email */}
+            <div className="mb-6">
+              <label className="block text-2xs font-black uppercase tracking-superwide mb-2" style={{ color: LIGHT_IK }}>
+                EMAIL ADDRESS
+              </label>
+              <input
+                type="email"
+                placeholder="YOUR@EMAIL.COM"
+                value={form.email}
+                onChange={(e) => handleInputChange("email", e.target.value)}
+                onFocus={() => setFocused("email")}
+                onBlur={() => setFocused(null)}
+                required
+                className="w-full py-3.5 px-4 text-2xs font-black uppercase tracking-superwide bg-transparent outline-none border transition-colors duration-100"
+                style={{
+                  borderColor: focused === "email" ? C : IK,
+                  color: IK,
+                }}
+              />
+            </div>
+
+            {/* Password */}
+            <div className="mb-8">
+              <label className="block text-2xs font-black uppercase tracking-superwide mb-2" style={{ color: LIGHT_IK }}>
+                PASSWORD
+              </label>
+              <input
+                type="password"
+                placeholder="••••••••••••"
+                value={form.password}
+                onChange={(e) => handleInputChange("password", e.target.value)}
+                onFocus={() => setFocused("password")}
+                onBlur={() => setFocused(null)}
+                required
+                className="w-full py-3.5 px-4 text-2xs font-black uppercase tracking-superwide bg-transparent outline-none border transition-colors duration-100"
+                style={{
+                  borderColor: focused === "password" ? C : IK,
+                  color: IK,
+                }}
+              />
+            </div>
+
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full py-4 font-black text-2xs uppercase tracking-superwide transition-all duration-100 disabled:opacity-50 flex items-center justify-center gap-2 border-2"
+              style={{ background: C, color: CR, borderColor: C }}
+              onMouseEnter={e => { if (!isSubmitting) { e.currentTarget.style.background = IK; e.currentTarget.style.borderColor = IK; }}}
+              onMouseLeave={e => { if (!isSubmitting) { e.currentTarget.style.background = C; e.currentTarget.style.borderColor = C; }}}
+            >
+              {isSubmitting ? (
+                <>
+                  <span className="animate-spin text-sm">◎</span>
+                  LOGGING IN...
+                </>
+              ) : (
+                "LOGIN →"
+              )}
+            </button>
+
+            {/* Footer */}
+            <div
+              className="mt-6 pt-6 border-t flex items-center justify-center"
+              style={{ borderColor: IK }}
+            >
+              <span className="text-2xs font-black uppercase tracking-superwide" style={{ color: LIGHT_IK }}>
+                NO ACCOUNT?&nbsp;
+              </span>
+              <Link
+                to="/signup"
+                className="text-2xs font-black uppercase tracking-superwide transition-colors duration-100 no-underline"
+                style={{ color: C }}
+                onMouseEnter={e => { e.currentTarget.style.color = IK; }}
+                onMouseLeave={e => { e.currentTarget.style.color = C; }}
+              >
+                SIGN UP →
+              </Link>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
