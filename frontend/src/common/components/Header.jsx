@@ -4,7 +4,7 @@ import { useDispatch } from "react-redux";
 import { fetchUserProfile } from "../../../handlers/users";
 import { fetchChatRooms } from "../../../handlers/chat";
 import { useTheme } from "../../hooks/useTheme";
-import { setTheme } from "../../store/themeSlice";
+import { setTheme } from "../../store/ThemeSlice";
 
 const NAV_LINKS = [
   { label: "Services", path: "/discovery" },
@@ -113,6 +113,13 @@ const UserMenu = () => {
     }
   };
 
+  const getProfileRoute = () => {
+    if (user?.role === "provider") return "/provider/profile";
+    if (user?.role === "customer") return "/profile";
+    if (user?.role === "both") return "/profile"; // or decide logic
+    return "/profile";
+  };
+
   if (!token || !user) {
     return (
       <>
@@ -132,10 +139,16 @@ const UserMenu = () => {
 
   return (
     <>
-      <div className="hidden lg:flex items-center px-4 border-l gap-2" style={{ borderColor: IK }}>
-        <span className="text-2xs font-black uppercase tracking-superwide" style={{ color: LIGHT_IK }}>PKR</span>
-        <span className="text-2xs font-black uppercase tracking-superwide tabular-nums" style={{ color: C }}>{walletBalance.toLocaleString()}</span>
-      </div>
+      {user?.role === "provider" && (
+        <div className="hidden lg:flex items-center px-4 border-l gap-2" style={{ borderColor: IK }}>
+          <span className="text-2xs font-black uppercase tracking-superwide" style={{ color: LIGHT_IK }}>
+            PKR
+          </span>
+          <span className="text-2xs font-black uppercase tracking-superwide tabular-nums" style={{ color: C }}>
+            {walletBalance.toLocaleString()}
+          </span>
+        </div>
+      )}
 
       <Link to="/chat"
         className="hidden md:flex items-center px-4 border-l text-2xs font-black uppercase tracking-superwide transition-all duration-100 no-underline relative"

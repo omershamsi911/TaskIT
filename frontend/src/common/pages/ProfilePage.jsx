@@ -2,21 +2,19 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { fetchUserProfile, fetchAddresses, addAddress, updateAddress, deleteAddress, setDefaultAddress } from "../../../handlers/users";
-
+import { fetchAddresses, addAddress, updateAddress, deleteAddress, setDefaultAddress } from "../../../handlers/users";
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const C  = "#FF5733";
 const CR  = "#F5F0E6";
 const IK    = "#1A1A1A";
 
-// Derived colors - automatically calculated from the 3 main constants
+// Derived colors
 const getAltBackground = () => {
   const r = parseInt(CR.slice(1,3), 16);
   const g = parseInt(CR.slice(3,5), 16);
   const b = parseInt(CR.slice(5,7), 16);
-  const darkened = `rgb(${Math.max(0, r-12)}, ${Math.max(0, g-12)}, ${Math.max(0, b-12)})`;
-  return darkened;
+  return `rgb(${Math.max(0, r-12)}, ${Math.max(0, g-12)}, ${Math.max(0, b-12)})`;
 };
 
 const getLightInk = () => {
@@ -37,13 +35,14 @@ const ROLE_META = {
 };
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
-const fmtDate = (iso) =>
-  new Date(iso)
+const fmtDate = (iso) => {
+  if (!iso) return "";
+  return new Date(iso)
     .toLocaleDateString("en-PK", { day: "2-digit", month: "short", year: "numeric" })
     .toUpperCase();
+};
 
 // ─── SMALL COMPONENTS ─────────────────────────────────────────────────────────
-
 const SectionBar = ({ n, title }) => (
   <div
     className="flex items-center justify-between px-6 py-2.5"
@@ -337,19 +336,24 @@ export default function ProfilePage() {
     ? ["PROFILE", "ACTIVITY", "EARNINGS", "SETTINGS"]
     : ["PROFILE", "ACTIVITY", "SETTINGS"];
 
-  // Fetch profile data
-  const loadProfileData = async () => {
+  // ── Load profile from localStorage ────────────────────────────────────────
+  const loadProfileData = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const [userData, addressesData] = await Promise.all([
-        fetchUserProfile(),
-        fetchAddresses(),
-      ]);
+      const stored = localStorage.getItem("user");
+      if (!stored) {
+        throw new Error("No user data found in local storage");
+      }
+      const userData = JSON.parse(stored);
       setUser(userData);
-      setAddresses(addressesData);
+
+      // Addresses still come from the handler; ignore any error silently
+      fetchAddresses()
+        .then((data) => setAddresses(data))
+        .catch(() => console.warn("Addresses could not be fetched"));
     } catch (err) {
-      setError(err.response?.data?.detail || err.message || "Failed to load profile");
+      setError(err.message);
     } finally {
       setIsLoading(false);
     }
@@ -359,14 +363,16 @@ export default function ProfilePage() {
     loadProfileData();
   }, []);
 
-  // Address handlers
+  // ── Address handlers (unchanged) ──────────────────────────────────────────
   const handleSaveAddress = async (formData) => {
     if (editModal.isNew) {
       const newAddr = await addAddress(formData);
       setAddresses((prev) => [...prev, newAddr]);
     } else {
       const updated = await updateAddress(editModal.address.id, formData);
-      setAddresses((prev) => prev.map((addr) => (addr.id === updated.id ? updated : addr)));
+      setAddresses((prev) =>
+        prev.map((addr) => (addr.id === updated.id ? updated : addr))
+      );
     }
   };
 
@@ -391,10 +397,8 @@ export default function ProfilePage() {
     setEditModal({ isOpen: false, address: null, isNew: false });
   };
 
-  // Loading state
+  // ── Rendering ─────────────────────────────────────────────────────────────
   if (isLoading) return <LoadingSkeleton />;
-
-  // Error state
   if (error || !user) {
     return <ErrorState message={error || "User data not available"} onRetry={loadProfileData} />;
   }
@@ -406,7 +410,7 @@ export default function ProfilePage() {
       <div className="relative z-10 flex flex-col min-h-screen">
         <Header />
 
-        {/* ── Breadcrumb + role badge ───────────────────────────────────── */}
+        {/* Breadcrumb */}
         <div className="flex items-center border-b px-6" style={{ background: CR, borderColor: IK }}>
           <span className="py-3 pr-5 border-r text-2xs font-black uppercase tracking-superwide" style={{ color: LIGHT_IK, borderColor: IK }}>
             ACCOUNT
@@ -419,10 +423,9 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* ══════════ HERO ══════════════════════════════════════════════════ */}
+        {/* HERO */}
         <div className="border-b" style={{ background: CR, borderColor: IK }}>
           <div className="grid lg:grid-cols-12">
-
             {/* Avatar */}
             <div
               className="lg:col-span-3 border-r flex items-center justify-center relative overflow-hidden"
@@ -440,7 +443,6 @@ export default function ProfilePage() {
                   {meta.sym}
                 </span>
               )}
-              {/* Role ribbon */}
               <div
                 className="absolute bottom-0 left-0 right-0 border-t flex items-center gap-2 px-4 py-2"
                 style={{ background: meta.bg, borderColor: IK }}
@@ -455,8 +457,6 @@ export default function ProfilePage() {
             {/* Name + contact */}
             <div className="lg:col-span-6 border-r px-8 py-8 flex flex-col justify-between gap-6" style={{ borderColor: IK }}>
               <div className="flex flex-col gap-4">
-
-                {/* Name */}
                 <h1
                   className="font-black uppercase leading-none"
                   style={{ fontSize: "clamp(1.8rem, 3.2vw, 2.8rem)", letterSpacing: "-0.02em", color: IK }}
@@ -464,7 +464,6 @@ export default function ProfilePage() {
                   {user.full_name}
                 </h1>
 
-                {/* Contact rows */}
                 <div className="flex flex-col gap-2">
                   {/* Email */}
                   <div className="flex items-center justify-between border px-4 py-3" style={{ background: CR_ALT, borderColor: IK }}>
@@ -485,15 +484,19 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                {/* Meta */}
+                {/* Meta info – only shown if data exists */}
                 <div className="flex flex-wrap gap-x-5 gap-y-1 pt-1">
                   <span className="text-2xs font-black uppercase tracking-wide" style={{ color: LIGHT_IK }}>
                     ID #{user.id}
                   </span>
-                  <span style={{ color: LIGHT_IK }}>·</span>
-                  <span className="text-2xs font-black uppercase tracking-wide" style={{ color: LIGHT_IK }}>
-                    MEMBER SINCE {fmtDate(user.created_at)}
-                  </span>
+                  {user.created_at && (
+                    <>
+                      <span style={{ color: LIGHT_IK }}>·</span>
+                      <span className="text-2xs font-black uppercase tracking-wide" style={{ color: LIGHT_IK }}>
+                        MEMBER SINCE {fmtDate(user.created_at)}
+                      </span>
+                    </>
+                  )}
                   {user.status && (
                     <>
                       <span style={{ color: LIGHT_IK }}>·</span>
@@ -505,27 +508,33 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              {/* Wallet + Points + Edit button */}
+              {/* Wallet & Points – only shown if data present */}
               <div className="flex items-center justify-between border-t pt-5" style={{ borderColor: IK }}>
                 <div className="flex items-center gap-6">
-                  <div>
-                    <p className="text-2xs font-black uppercase tracking-wide mb-1" style={{ color: LIGHT_IK }}>WALLET BALANCE</p>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-lg font-black tabular-nums leading-none" style={{ color: C, letterSpacing: "-0.04em" }}>
-                        PKR {user.wallet_balance?.toLocaleString() || "0"}
-                      </span>
+                  {user.wallet_balance != null && (
+                    <div>
+                      <p className="text-2xs font-black uppercase tracking-wide mb-1" style={{ color: LIGHT_IK }}>WALLET BALANCE</p>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-lg font-black tabular-nums leading-none" style={{ color: C, letterSpacing: "-0.04em" }}>
+                          PKR {user.wallet_balance.toLocaleString()}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                  <div style={{ color: LIGHT_IK }}>·</div>
-                  <div>
-                    <p className="text-2xs font-black uppercase tracking-wide mb-1" style={{ color: LIGHT_IK }}>LOYALTY POINTS</p>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-lg font-black tabular-nums leading-none" style={{ color: C, letterSpacing: "-0.04em" }}>
-                        {user.loyalty_points?.toLocaleString() || "0"}
-                      </span>
-                      <span className="text-2xs font-black uppercase tracking-wide" style={{ color: LIGHT_IK }}>PTS</span>
-                    </div>
-                  </div>
+                  )}
+                  {user.loyalty_points != null && (
+                    <>
+                      {user.wallet_balance != null && <span style={{ color: LIGHT_IK }}>·</span>}
+                      <div>
+                        <p className="text-2xs font-black uppercase tracking-wide mb-1" style={{ color: LIGHT_IK }}>LOYALTY POINTS</p>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-lg font-black tabular-nums leading-none" style={{ color: C, letterSpacing: "-0.04em" }}>
+                            {user.loyalty_points.toLocaleString()}
+                          </span>
+                          <span className="text-2xs font-black uppercase tracking-wide" style={{ color: LIGHT_IK }}>PTS</span>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
                 <button
                   className="border px-5 py-2.5 text-2xs font-black uppercase tracking-superwide transition-colors duration-100"
@@ -543,7 +552,7 @@ export default function ProfilePage() {
               {[
                 { label: "EMAIL STATUS",    val: user.is_email_verified ? "VERIFIED" : "PENDING", accent: user.is_email_verified },
                 { label: "PHONE STATUS",    val: user.is_phone_verified ? "VERIFIED" : "PENDING", accent: user.is_phone_verified },
-                { label: "ACCOUNT STATUS",  val: (user.status || "active").toUpperCase(),         accent: user.status === "active" },
+                { label: "ACCOUNT STATUS",  val: (user.status || "ACTIVE").toUpperCase(),         accent: user.status === "active" },
               ].map((s, i) => (
                 <div
                   key={s.label}
@@ -561,7 +570,6 @@ export default function ProfilePage() {
                   </span>
                 </div>
               ))}
-              {/* Provider CTA or upgrade CTA */}
               {isProvider ? (
                 <Link
                   to="/provider/jobs"
@@ -588,7 +596,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* ── Tab bar ─────────────────────────────────────────────────────── */}
+        {/* Tab bar */}
         <div className="flex items-stretch border-b overflow-x-auto shrink-0" style={{ background: CR, borderColor: IK }}>
           {TABS.map((tab) => {
             const active = activeTab === tab;
@@ -597,10 +605,10 @@ export default function ProfilePage() {
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className="px-7 py-3.5 text-2xs font-black uppercase tracking-superwide border-r whitespace-nowrap transition-colors duration-100"
-                style={{ 
-                  background: active ? IK : CR, 
+                style={{
+                  background: active ? IK : CR,
                   color: active ? CR : IK,
-                  borderColor: IK 
+                  borderColor: IK
                 }}
               >
                 {tab}
@@ -614,10 +622,8 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* ══════════ TAB CONTENT ══════════════════════════════════════════ */}
+        {/* Tab Content */}
         <div className="flex-1 px-6 md:px-10 py-8 flex flex-col gap-8">
-
-          {/* ── PROFILE TAB ──────────────────────────────────────────────── */}
           {activeTab === "PROFILE" && (
             <>
               {/* Personal info */}
@@ -627,7 +633,7 @@ export default function ProfilePage() {
                   {[
                     { label: "FULL NAME",    val: user.full_name },
                     { label: "ACCOUNT ID",   val: `#${user.id}` },
-                    { label: "MEMBER SINCE", val: fmtDate(user.created_at) },
+                    ...(user.created_at ? [{ label: "MEMBER SINCE", val: fmtDate(user.created_at) }] : []),
                     { label: "ROLE",         val: user.role?.toUpperCase(), hi: true },
                     { label: "EMAIL STATUS", val: user.is_email_verified ? "VERIFIED" : "UNVERIFIED", hi: user.is_email_verified },
                     { label: "PHONE STATUS", val: user.is_phone_verified ? "VERIFIED" : "UNVERIFIED", hi: user.is_phone_verified },
@@ -635,9 +641,9 @@ export default function ProfilePage() {
                     <div
                       key={item.label}
                       className="px-6 py-5 border-r border-b last:border-r-0"
-                      style={{ 
+                      style={{
                         background: i % 2 === 0 ? CR : CR_ALT,
-                        borderColor: IK 
+                        borderColor: IK
                       }}
                     >
                       <p className="text-2xs font-black uppercase tracking-superwide mb-2" style={{ color: LIGHT_IK }}>
@@ -668,12 +674,11 @@ export default function ProfilePage() {
                     <div
                       key={addr.id}
                       className="relative px-6 py-6 border-r border-b last:border-r-0"
-                      style={{ 
+                      style={{
                         background: i % 2 === 0 ? CR : CR_ALT,
-                        borderColor: IK 
+                        borderColor: IK
                       }}
                     >
-                      {/* Label + default badge */}
                       <div className="flex items-center gap-3 mb-3">
                         <span className="text-xs font-black uppercase tracking-wide" style={{ color: IK }}>
                           {addr.label}
@@ -687,8 +692,6 @@ export default function ProfilePage() {
                           </span>
                         )}
                       </div>
-
-                      {/* Address lines */}
                       <p className="text-xs font-black uppercase tracking-wide mb-1" style={{ color: IK }}>
                         {addr.address_line1}
                       </p>
@@ -700,13 +703,9 @@ export default function ProfilePage() {
                       <p className="text-2xs font-black uppercase tracking-wide" style={{ color: LIGHT_IK }}>
                         {addr.city}, {addr.province}
                       </p>
-
-                      {/* Coordinates */}
                       <p className="text-2xs font-black mt-3 tabular-nums" style={{ color: LIGHT_IK }}>
                         ⌖ {addr.lat?.toFixed(4)}, {addr.lng?.toFixed(4)}
                       </p>
-
-                      {/* Action buttons */}
                       <div className="absolute top-4 right-5 flex items-center gap-3">
                         {!addr.is_default && (
                           <button
@@ -740,8 +739,6 @@ export default function ProfilePage() {
                       </div>
                     </div>
                   ))}
-
-                  {/* Add address cell */}
                   <button
                     onClick={() => openEditModal(null)}
                     className="flex items-center justify-center gap-2 px-6 py-6 border-r border-b transition-colors duration-100"
@@ -757,35 +754,39 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              {/* Wallet & Loyalty */}
+              {/* Wallet & Loyalty (only when data exists) */}
               <div className="grid grid-cols-2 gap-8">
-                <div className="border overflow-hidden" style={{ borderColor: IK }}>
-                  <SectionBar n="§ 003" title="WALLET" />
-                  <div className="p-6" style={{ background: CR }}>
-                    <span className="text-2xs font-black uppercase tracking-superwide block mb-2" style={{ color: LIGHT_IK }}>
-                      CURRENT BALANCE
-                    </span>
-                    <span className="text-4xl font-black leading-none" style={{ color: C, letterSpacing: "-0.03em" }}>
-                      PKR {user.wallet_balance?.toLocaleString() || "0"}
-                    </span>
+                {user.wallet_balance != null && (
+                  <div className="border overflow-hidden" style={{ borderColor: IK }}>
+                    <SectionBar n="§ 003" title="WALLET" />
+                    <div className="p-6" style={{ background: CR }}>
+                      <span className="text-2xs font-black uppercase tracking-superwide block mb-2" style={{ color: LIGHT_IK }}>
+                        CURRENT BALANCE
+                      </span>
+                      <span className="text-4xl font-black leading-none" style={{ color: C, letterSpacing: "-0.03em" }}>
+                        PKR {user.wallet_balance.toLocaleString()}
+                      </span>
+                    </div>
                   </div>
-                </div>
-                <div className="border overflow-hidden" style={{ borderColor: IK }}>
-                  <SectionBar n="§ 004" title="LOYALTY POINTS" />
-                  <div className="p-6" style={{ background: CR }}>
-                    <span className="text-2xs font-black uppercase tracking-superwide block mb-2" style={{ color: LIGHT_IK }}>
-                      AVAILABLE POINTS
-                    </span>
-                    <span className="text-4xl font-black leading-none" style={{ color: C, letterSpacing: "-0.03em" }}>
-                      {user.loyalty_points?.toLocaleString() || "0"}
-                    </span>
+                )}
+                {user.loyalty_points != null && (
+                  <div className="border overflow-hidden" style={{ borderColor: IK }}>
+                    <SectionBar n="§ 004" title="LOYALTY POINTS" />
+                    <div className="p-6" style={{ background: CR }}>
+                      <span className="text-2xs font-black uppercase tracking-superwide block mb-2" style={{ color: LIGHT_IK }}>
+                        AVAILABLE POINTS
+                      </span>
+                      <span className="text-4xl font-black leading-none" style={{ color: C, letterSpacing: "-0.03em" }}>
+                        {user.loyalty_points.toLocaleString()}
+                      </span>
+                    </div>
                   </div>
-                </div>
+                )}
+                {/* If neither wallet nor points exist, the grid will be empty */}
               </div>
             </>
           )}
 
-          {/* ── ACTIVITY TAB ─────────────────────────────────────────────── */}
           {activeTab === "ACTIVITY" && (
             <div className="border overflow-hidden" style={{ borderColor: IK }}>
               <SectionBar n="§ 001" title="RECENT ACTIVITY" />
@@ -801,7 +802,6 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {/* ── EARNINGS TAB (provider only) ─────────────────────────────── */}
           {activeTab === "EARNINGS" && isProvider && (
             <div className="border overflow-hidden" style={{ borderColor: IK }}>
               <SectionBar n="§ 001" title="EARNINGS OVERVIEW" />
@@ -817,7 +817,6 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {/* ── SETTINGS TAB ─────────────────────────────────────────────── */}
           {activeTab === "SETTINGS" && (
             <>
               <div className="border overflow-hidden" style={{ borderColor: IK }}>
@@ -835,9 +834,9 @@ export default function ProfilePage() {
                     <button
                       key={item.label}
                       className="flex items-center justify-between px-8 py-5 border-b last:border-b-0 text-left transition-colors duration-100"
-                      style={{ 
+                      style={{
                         background: i % 2 === 0 ? CR : CR_ALT,
-                        borderColor: IK 
+                        borderColor: IK
                       }}
                       onMouseEnter={(e) => { e.currentTarget.style.background = IK; e.currentTarget.style.color = CR; }}
                       onMouseLeave={(e) => { e.currentTarget.style.background = i % 2 === 0 ? CR : CR_ALT; e.currentTarget.style.color = IK; }}
@@ -877,10 +876,8 @@ export default function ProfilePage() {
               </div>
             </>
           )}
-
         </div>
 
-        {/* Edit Address Modal */}
         <EditAddressModal
           isOpen={editModal.isOpen}
           onClose={closeEditModal}

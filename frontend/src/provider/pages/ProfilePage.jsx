@@ -61,7 +61,7 @@ const SectionBar = ({ n, title }) => (
 );
 
 // ─── PROFILE PAGE ─────────────────────────────────────────────────────────────
-export default function ProfilePage() {
+export default function ProviderProfilePage() {
   const p = PROVIDER;
   const [activeTab, setActiveTab] = useState("OVERVIEW");
   const TABS = ["OVERVIEW", "SERVICES", "REVIEWS"];

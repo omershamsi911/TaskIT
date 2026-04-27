@@ -20,12 +20,15 @@ export default function Login() {
 
     try {
       const data = await handleEmailLogin(form);
-      
-      localStorage.setItem("access_token", data.access_token);
+      // Store tokens
+      localStorage.setItem("access_token", data.tokens.access_token);
       if (data.refresh_token) {
-        localStorage.setItem("refresh_token", data.refresh_token);
+        localStorage.setItem("refresh_token", data.tokens.refresh_token);
       }
-      
+
+      // Store user (stringified)
+      localStorage.setItem("user", JSON.stringify(data.user));
+
       navigate("/");
     } catch (err) {
       const message = err?.detail || "Login failed. Please try again.";

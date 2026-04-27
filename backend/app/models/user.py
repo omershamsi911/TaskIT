@@ -1,6 +1,7 @@
 from sqlalchemy import Column, BigInteger, String, Enum, DECIMAL, Integer, DateTime, ForeignKey, Boolean
 from sqlalchemy.sql import func
 from app.core.database import Base
+from pydantic import BaseModel
 
 class User(Base):
     __tablename__ = "users"

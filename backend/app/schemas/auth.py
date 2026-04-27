@@ -28,3 +28,22 @@ class SignupRequest(BaseModel):
         if v not in ['customer', 'provider', 'both']:
             raise ValueError('Invalid role')
         return v
+    
+class UserResponse(BaseModel):
+    id: int
+    email: str
+    role: str
+    full_name: str
+    phone: str
+    is_phone_verified: bool
+    is_email_verified: bool
+    is_business_account: bool
+    fcm_token: str | None = None
+    avatar_url: str | None = None
+
+    class Config:
+        from_attributes = True 
+
+class LoginResponse(BaseModel):
+    user: UserResponse
+    tokens: dict

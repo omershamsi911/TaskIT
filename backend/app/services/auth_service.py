@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from app.core.security import get_password_hash, verify_password, create_access_token, create_refresh_token, decode_token
 from app.models.user import User
 from app.models.otp_token import OTPToken
-from app.schemas.auth import SignupRequest, PhoneLoginRequest, EmailLoginRequest
+from app.schemas.auth import SignupRequest, PhoneLoginRequest, EmailLoginRequest, LoginResponse, UserResponse
 from app.utils.otp import generate_otp, send_sms_otp
 from fastapi import HTTPException, status
 import random
@@ -58,6 +58,20 @@ class AuthService:
             if user.status in ["suspended", "banned"]:
                 raise HTTPException(status_code=403, detail="Account restricted")
         return self.create_tokens_for_user(user)
+    
+    def serialize_user(user: User):
+        return {
+            "id": user.id,
+            "email": user.email,
+            "role": user.role,
+            "full_name": user.full_name,
+            "phone": user.phone,
+            "is_phone_verified": user.is_phone_verified,
+            "is_email_verified": user.is_email_verified,
+            "is_business_account": user.is_business_account,
+            "fcm_token": user.fcm_token,
+            "avatar_url": user.avatar_url
+        }
 
     async def login_with_email(self, data: EmailLoginRequest):
         stmt = select(User).where(User.email == data.email)
@@ -65,8 +79,10 @@ class AuthService:
         user = result.scalar_one_or_none()
         if not user or not verify_password(data.password, user.password_hash):
             raise HTTPException(status_code=401, detail="Invalid credentials")
-        return self.create_tokens_for_user(user)
-
+        return LoginResponse(
+            user=UserResponse.model_validate(user),
+            tokens=self.create_tokens_for_user(user)
+        )
     def create_tokens_for_user(self, user: User):
         payload = {"sub": str(user.id), "role": user.role}
         access = create_access_token(payload)

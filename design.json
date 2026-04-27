@@ -1,0 +1,173 @@
+{
+  "meta": {
+    "name": "Taskit Design System",
+    "version": "1.0.0",
+    "description": "Minimal, grid-based domestic services platform UI with bold typography and neutral palette accented by orange."
+  },
+  "layout": {
+    "grid": {
+      "columns": 12,
+      "gutter": "16px",
+      "margin": "24px",
+      "maxWidth": "1440px"
+    },
+    "sections": {
+      "navbar": {
+        "height": "64px",
+        "position": "fixed",
+        "borderBottom": "1px solid #1a1a1a"
+      },
+      "hero": {
+        "padding": "80px 24px",
+        "split": "left-content-right-stats"
+      },
+      "sidebar": {
+        "width": "280px",
+        "background": "#111111",
+        "textColor": "#ffffff"
+      },
+      "content": {
+        "background": "#f4f1eb",
+        "padding": "24px"
+      }
+    }
+  },
+  "colors": {
+    "primary": "#ff4d2d",
+    "primaryHover": "#e84325",
+    "background": "#f4f1eb",
+    "surface": "#ffffff",
+    "border": "#1a1a1a",
+    "textPrimary": "#111111",
+    "textSecondary": "#6b6b6b",
+    "muted": "#bdbdbd",
+    "success": "#28c76f",
+    "warning": "#ff9f43",
+    "danger": "#ea5455"
+  },
+  "typography": {
+    "fontFamily": "Inter, sans-serif",
+    "scale": {
+      "hero": {
+        "size": "72px",
+        "weight": "800",
+        "lineHeight": "1.1",
+        "letterSpacing": "-1px"
+      },
+      "h1": {
+        "size": "40px",
+        "weight": "700"
+      },
+      "h2": {
+        "size": "28px",
+        "weight": "600"
+      },
+      "body": {
+        "size": "14px",
+        "weight": "400"
+      },
+      "caption": {
+        "size": "12px",
+        "weight": "500",
+        "letterSpacing": "0.5px"
+      }
+    }
+  },
+  "components": {
+    "button": {
+      "primary": {
+        "background": "#ff4d2d",
+        "color": "#ffffff",
+        "padding": "12px 20px",
+        "border": "none",
+        "textTransform": "uppercase"
+      },
+      "secondary": {
+        "background": "transparent",
+        "color": "#111111",
+        "border": "1px solid #111111"
+      }
+    },
+    "input": {
+      "height": "48px",
+      "border": "1px solid #1a1a1a",
+      "padding": "0 12px",
+      "background": "#ffffff",
+      "placeholderColor": "#999999"
+    },
+    "card": {
+      "background": "#ffffff",
+      "border": "1px solid #1a1a1a",
+      "padding": "16px"
+    },
+    "badge": {
+      "verified": {
+        "color": "#28c76f",
+        "textTransform": "uppercase",
+        "fontSize": "12px"
+      }
+    },
+    "tabs": {
+      "active": {
+        "background": "#ff4d2d",
+        "color": "#ffffff"
+      },
+      "inactive": {
+        "background": "transparent",
+        "color": "#111111",
+        "borderBottom": "1px solid #1a1a1a"
+      }
+    },
+    "filters": {
+      "sectionTitle": {
+        "color": "#ffffff",
+        "background": "#111111",
+        "padding": "12px",
+        "fontSize": "12px",
+        "textTransform": "uppercase"
+      },
+      "item": {
+        "padding": "10px 12px",
+        "borderBottom": "1px solid #2a2a2a"
+      }
+    }
+  },
+  "patterns": {
+    "heroText": {
+      "style": "bold-uppercase",
+      "highlightColor": "#ff4d2d",
+      "secondaryStyle": "outline"
+    },
+    "statsPanel": {
+      "layout": "vertical",
+      "itemSpacing": "24px",
+      "numberStyle": {
+        "size": "32px",
+        "weight": "700",
+        "color": "#ff4d2d"
+      },
+      "labelStyle": {
+        "size": "12px",
+        "uppercase": true,
+        "color": "#6b6b6b"
+      }
+    },
+    "categoryGrid": {
+      "columns": 4,
+      "gap": "0px",
+      "itemBorder": "1px solid #1a1a1a",
+      "hoverEffect": "background:#fafafa"
+    }
+  },
+  "iconography": {
+    "style": "minimal",
+    "stroke": "1.5px",
+    "color": "#111111"
+  },
+  "motion": {
+    "transition": "all 0.2s ease",
+    "hover": {
+      "scale": "1.02"
+    }
+  }
+}

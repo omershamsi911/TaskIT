@@ -3,6 +3,7 @@ import Login from './common/pages/Login'
 import Signup from './common/pages/Signup'
 import LandingPage from './common/pages/LandingPage'
 import ProfilePage from './common/pages/ProfilePage'
+import ProviderProfilePage from './provider/pages/ProfilePage'
 import DiscoveryPage from './user/pages/DiscoveryPage'
 import BookingDetailPage from './user/pages/BookingDetail'
 import BookingList from './user/pages/BookingList'
@@ -42,6 +43,7 @@ export default function AppRoutes() {
         <Route path="/provider/requests/:requestId" element={<ProviderJobDetail />} />
         <Route path="/provider/jobs" element={<ProviderJobs />} />
         <Route path="/provider/jobs/:jobId" element={<ProviderJobDetail />} />
+        <Route path="/provider/profile" element={<ProviderProfilePage />} />
         {/* <Route path="/provider/profile/edit" element={<ProviderProfileEdit />} /> */}
         {/* <Route path="/provider/earnings" element={<ProviderEarnings />} /> */}
         {/* <Route path="/provider/reviews" element={<ProviderReviews />} /> */}
