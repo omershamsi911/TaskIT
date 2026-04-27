@@ -1,46 +1,62 @@
 import { useState } from "react";
 import { useTheme } from "../../hooks/useTheme";
 
-const CATEGORIES = [
-  "Plumbing", "Electrician", "Cleaning", "Tutoring",
-  "Carpentry", "AC Repair", "Painting", "Moving", "Gardening",
-];
-
 const DISTANCE_OPTIONS = [
-  ["any",  "ANY DISTANCE"],
-  ["5km",  "< 5 KM"],
+  ["any", "ANY DISTANCE"],
+  ["5km", "< 5 KM"],
   ["10km", "< 10 KM"],
   ["25km", "< 25 KM"],
   ["50km", "< 50 KM"],
 ];
 
 const SectionHeading = ({ label }) => (
-  <div className="px-5 py-2 border-b border-ink" style={{ background: "#1A1A1A" }}>
-    <span className="text-2xs font-black uppercase tracking-superwide" style={{ color: "#FF5733" }}>
+  <div
+    className="px-5 py-2 border-b border-ink"
+    style={{ background: "#1A1A1A" }}
+  >
+    <span
+      className="text-2xs font-black uppercase tracking-superwide"
+      style={{ color: "#FF5733" }}
+    >
       {label}
     </span>
   </div>
 );
 
-export default function FilterSidebar() {
+export default function FilterSidebar({
+  categories,
+  selectedCategory,
+  selectedSubcategory,
+  onCategoryChange,
+  onSubcategoryChange,
+  priceMin,
+  setPriceMin,
+  priceMax,
+  setPriceMax,
+  minRating,
+  setMinRating,
+  distance,
+  setDistance,
+  verifiedOnly,
+  setVerifiedOnly,
+  availableOnly,
+  setAvailableOnly,
+}) {
   const { C, CR, IK, CR_ALT, LIGHT_IK } = useTheme();
-  const [priceMin, setPriceMin]                     = useState("");
-  const [priceMax, setPriceMax]                     = useState("");
-  const [minRating, setMinRating]                   = useState(null);
-  const [distance, setDistance]                     = useState("any");
-  const [selectedCategories, setSelectedCategories] = useState([]);
-  const [verifiedOnly, setVerifiedOnly]             = useState(false);
-  const [availableOnly, setAvailableOnly]           = useState(false);
 
-  const toggleCategory = (cat) =>
-    setSelectedCategories((prev) =>
-      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
-    );
+const [expandedCategory, setExpandedCategory] = useState(null);
 
+const toggleCategory = (id) => {
+  setExpandedCategory(prev => (prev === id ? null : id));
+};
   const handleReset = () => {
-    setPriceMin(""); setPriceMax(""); setMinRating(null);
-    setDistance("any"); setSelectedCategories([]);
-    setVerifiedOnly(false); setAvailableOnly(false);
+    setPriceMin("");
+    setPriceMax("");
+    setMinRating(null);
+    setDistance("any");
+    setSelectedCategories([]);
+    setVerifiedOnly(false);
+    setAvailableOnly(false);
   };
 
   return (
@@ -50,7 +66,10 @@ export default function FilterSidebar() {
     >
       {/* ── Header ── */}
       <div className="flex items-center justify-between px-5 py-3.5 border-b border-ink">
-        <span className="text-xs font-black uppercase tracking-superwide" style={{ color: "#1A1A1A" }}>
+        <span
+          className="text-xs font-black uppercase tracking-superwide"
+          style={{ color: "#1A1A1A" }}
+        >
           FILTERS
         </span>
         <button
@@ -64,35 +83,87 @@ export default function FilterSidebar() {
 
       {/* ── Category ── */}
       <div className="border-b border-ink">
-        <SectionHeading label="§ Category" />
-        {CATEGORIES.map((cat) => {
-          const active = selectedCategories.includes(cat);
+        <SectionHeading label="§ CATEGORIES" />
+        {categories.map((cat) => {
+  const isExpanded = expandedCategory === cat.id;
+  const isSelected = selectedCategory === String(cat.id);
+
+  return (
+    <div key={cat.id}>
+      
+      {/* CATEGORY */}
+      <button
+        onClick={() =>
+          setExpandedCategory(prev => (prev === cat.id ? null : cat.id))
+        }
+        className="w-full flex items-center justify-between px-5 py-2.5 border-b transition-all duration-150 text-left"
+        style={{
+          borderColor: "#1A1A1A",
+          background: isSelected ? "#1A1A1A" : "#F5F0E6",
+        }}
+      >
+        <span
+          className="text-2xs font-black uppercase tracking-wide"
+          style={{
+            color: isSelected ? "#F5F0E6" : "#1A1A1A",
+          }}
+        >
+          {cat.name}
+        </span>
+
+        {cat.subcategories?.length > 0 && (
+          <span
+            style={{
+              color: "#FF5733",
+              fontSize: "10px",
+              transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
+              transition: "transform 0.15s ease",
+            }}
+          >
+            ▼
+          </span>
+        )}
+      </button>
+
+      {/* SUBCATEGORIES */}
+      <div
+        style={{
+          maxHeight: isExpanded ? "500px" : "0px",
+          overflow: "hidden",
+          transition: "max-height 0.2s ease",
+        }}
+      >
+        {cat.subcategories?.map((sub) => {
+          const isSubSelected = selectedSubcategory === String(sub.id);
+
           return (
-            <label
-              key={cat}
-              className="flex items-center gap-3 px-5 py-2.5 border-b border-ink cursor-pointer transition-colors duration-100"
-              style={{ background: active ? "#1A1A1A" : "#F5F0E6" }}
+            <button
+              key={sub.id}
+              onClick={(e) => {
+                e.stopPropagation(); // 🔥 prevents collapsing
+                onSubcategoryChange(sub.id);
+              }}
+              className="w-full flex items-center gap-4 px-8 py-2 border-b transition-all duration-100"
+              style={{
+                borderColor: "#1A1A1A",
+                background: isSubSelected ? "#FF5733" : "#F5F0E6",
+              }}
             >
-              {/* Custom checkbox */}
-              <span
-                className="w-3 h-3 border shrink-0 flex items-center justify-center"
-                style={{
-                  borderColor: active ? "#FF5733" : "#1A1A1A",
-                  background:  active ? "#FF5733" : "transparent",
-                }}
-              >
-                {active && <span className="text-2xs font-black leading-none" style={{ color: "#F5F0E6" }}>✓</span>}
-              </span>
-              <input type="checkbox" className="hidden" checked={active} onChange={() => toggleCategory(cat)} />
               <span
                 className="text-2xs font-black uppercase tracking-wide"
-                style={{ color: active ? "#F5F0E6" : "#1A1A1A" }}
+                style={{
+                  color: isSubSelected ? "#F5F0E6" : "#1A1A1A",
+                }}
               >
-                {cat}
+                {sub.name}
               </span>
-            </label>
+            </button>
           );
         })}
+      </div>
+    </div>
+  );
+})}
       </div>
 
       {/* ── Price Range ── */}
@@ -100,7 +171,12 @@ export default function FilterSidebar() {
         <SectionHeading label="§ Price Range (PKR)" />
         <div className="flex">
           <div className="flex-1 border-r border-ink flex flex-col">
-            <span className="px-4 pt-2.5 text-2xs font-black uppercase tracking-wide" style={{ color: "#1A1A1A", opacity: 0.4 }}>MIN</span>
+            <span
+              className="px-4 pt-2.5 text-2xs font-black uppercase tracking-wide"
+              style={{ color: "#1A1A1A", opacity: 0.4 }}
+            >
+              MIN
+            </span>
             <input
               type="number"
               placeholder="0"
@@ -111,7 +187,12 @@ export default function FilterSidebar() {
             />
           </div>
           <div className="flex-1 flex flex-col">
-            <span className="px-4 pt-2.5 text-2xs font-black uppercase tracking-wide" style={{ color: "#1A1A1A", opacity: 0.4 }}>MAX</span>
+            <span
+              className="px-4 pt-2.5 text-2xs font-black uppercase tracking-wide"
+              style={{ color: "#1A1A1A", opacity: 0.4 }}
+            >
+              MAX
+            </span>
             <input
               type="number"
               placeholder="∞"
@@ -136,7 +217,10 @@ export default function FilterSidebar() {
               className="w-full flex items-center justify-between px-5 py-2.5 border-b border-ink transition-colors duration-100"
               style={{ background: active ? "#FF5733" : "#F5F0E6" }}
             >
-              <span className="text-xs tracking-wider" style={{ color: active ? "#F5F0E6" : "#FF5733" }}>
+              <span
+                className="text-xs tracking-wider"
+                style={{ color: active ? "#F5F0E6" : "#FF5733" }}
+              >
                 {"★".repeat(r)}
                 <span style={{ opacity: 0.3 }}>{"☆".repeat(5 - r)}</span>
               </span>
@@ -179,8 +263,12 @@ export default function FilterSidebar() {
       <div className="border-b border-ink">
         <SectionHeading label="§ Options" />
         {[
-          { label: "VERIFIED ONLY",  state: verifiedOnly,  set: setVerifiedOnly  },
-          { label: "AVAILABLE NOW",  state: availableOnly, set: setAvailableOnly },
+          { label: "VERIFIED ONLY", state: verifiedOnly, set: setVerifiedOnly },
+          {
+            label: "AVAILABLE NOW",
+            state: availableOnly,
+            set: setAvailableOnly,
+          },
         ].map(({ label, state, set }) => (
           <button
             key={label}
@@ -197,7 +285,10 @@ export default function FilterSidebar() {
             {/* Toggle pill */}
             <span
               className="w-8 h-4 border flex items-center transition-colors shrink-0"
-              style={{ borderColor: state ? "#FF5733" : "#1A1A1A", background: state ? "#FF5733" : "transparent" }}
+              style={{
+                borderColor: state ? "#FF5733" : "#1A1A1A",
+                background: state ? "#FF5733" : "transparent",
+              }}
             >
               <span
                 className="w-3.5 h-3.5 transition-transform"

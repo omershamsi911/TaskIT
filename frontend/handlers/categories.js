@@ -7,6 +7,8 @@ import api from "../api/api";
  */
 export const fetchCategories = async () => {
   const { data } = await api.get("/categories/");
+  console.log("============Categories GET DATA===========")
+  console.log(data)
   return data;
 };
 
