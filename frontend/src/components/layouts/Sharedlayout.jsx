@@ -4,6 +4,8 @@
  * Provides the common Navbar (with role-aware avatar dropdown),
  * the horizontal ticker, GridOverlay, and Footer that wrap every page.
  *
+ * UPDATED: Added Chat button with unread badge to the navbar auth area.
+ *
  * Usage:
  *   import SharedLayout from "../layouts/SharedLayout";
  *   const MyPage = () => <SharedLayout><YourContent /></SharedLayout>;
@@ -11,6 +13,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { getChatRooms } from "../../handlers/chatHandlers";
 
 // ─── DESIGN TOKENS ────────────────────────────────────────────────
 export const T = {
@@ -100,6 +103,65 @@ const AuthLink = ({ to, label, filled }) => {
   );
 };
 
+// ─── CHAT NAV BUTTON ──────────────────────────────────────────────
+const ChatNavButton = () => {
+  const [unread, setUnread] = useState(0);
+  const [hov,    setHov]    = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+
+    const fetchUnread = () => {
+      getChatRooms()
+        .then(rooms => {
+          const total = rooms.reduce((acc, r) => acc + (r.unread_count || 0), 0);
+          setUnread(total);
+        })
+        .catch(() => {});
+    };
+
+    fetchUnread();
+    const id = setInterval(fetchUnread, 15000); // poll every 15s
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <Link
+      to="/chat"
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        display: "flex", alignItems: "center", gap: 8,
+        padding: "0 20px", borderLeft: `1px solid ${T.IK}`,
+        background: hov ? T.C : "transparent",
+        color: hov ? T.CR : T.IK,
+        textDecoration: "none", fontSize: 10, fontWeight: 900,
+        letterSpacing: "0.15em", textTransform: "uppercase",
+        transition: "all 0.1s", position: "relative",
+      }}
+    >
+      {/* Chat icon */}
+      <span style={{ fontSize: 16, lineHeight: 1 }}>💬</span>
+      <span className="tk-desktop">CHAT</span>
+      {/* Unread badge */}
+      {unread > 0 && (
+        <span style={{
+          position: "absolute", top: 8, right: hov ? 10 : 10,
+          minWidth: 16, height: 16, borderRadius: 8,
+          background: T.C, border: `2px solid ${hov ? T.C : T.CR}`,
+          color: "#fff", fontSize: 8, fontWeight: 900,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          padding: "0 3px", lineHeight: 1,
+          transition: "border-color 0.1s",
+        }}>
+          {unread > 99 ? "99+" : unread}
+        </span>
+      )}
+    </Link>
+  );
+};
+
 // ─── AVATAR DROPDOWN ──────────────────────────────────────────────
 const AvatarDropdown = ({ user, onLogout }) => {
   const [open, setOpen] = useState(false);
@@ -120,6 +182,7 @@ const AvatarDropdown = ({ user, onLogout }) => {
   const menuItems = [
     { label: "My Profile",  path: "/profile" },
     { label: "My Bookings", path: "/my-bookings" },
+    { label: "Messages",    path: "/chat" },
     ...(isProvider ? [{ label: "Provider Dashboard", path: "/provider-dashboard" }] : []),
   ];
 
@@ -128,7 +191,7 @@ const AvatarDropdown = ({ user, onLogout }) => {
       {/* Avatar button */}
       <button
         onClick={() => setOpen(o => !o)}
-        style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 20px", borderLeft: `1px solid ${T.IK}`, background: open ? T.C : "transparent", color: open ? T.CR : T.IK, cursor: "pointer", border: "none", borderLeft: `1px solid ${T.IK}`, transition: "all 0.1s", fontFamily: "inherit" }}>
+        style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 20px", borderLeft: `1px solid ${T.IK}`, background: open ? T.C : "transparent", color: open ? T.CR : T.IK, cursor: "pointer", border: "none", transition: "all 0.1s", fontFamily: "inherit" }}>
         {/* Circle avatar */}
         <div style={{ width: 30, height: 30, borderRadius: "50%", background: open ? T.CR : T.IK, color: open ? T.IK : T.CR, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 900, flexShrink: 0, transition: "all 0.1s" }}>
           {initial}
@@ -225,7 +288,11 @@ export const Navbar = () => {
         {/* Auth area */}
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "stretch" }}>
           {token && user ? (
-            <AvatarDropdown user={user} onLogout={handleLogout} />
+            <>
+              {/* Chat button — only for logged-in users */}
+              <ChatNavButton />
+              <AvatarDropdown user={user} onLogout={handleLogout} />
+            </>
           ) : (
             <>
               <AuthLink to="/login"    label="LOGIN"   filled={false} />
@@ -254,11 +321,12 @@ export const Navbar = () => {
             <>
               <Link to="/profile"   onClick={() => setMobileOpen(false)} style={{ display: "flex", alignItems: "center", padding: "16px 24px", borderBottom: `1px solid ${T.IK}`, textDecoration: "none", fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.IK }}>My Profile</Link>
               <Link to="/my-bookings" onClick={() => setMobileOpen(false)} style={{ display: "flex", alignItems: "center", padding: "16px 24px", borderBottom: `1px solid ${T.IK}`, textDecoration: "none", fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.IK }}>My Bookings</Link>
+              <Link to="/chat" onClick={() => setMobileOpen(false)} style={{ display: "flex", alignItems: "center", padding: "16px 24px", borderBottom: `1px solid ${T.IK}`, textDecoration: "none", fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.IK }}>💬 Messages</Link>
               {(user?.role === "provider" || user?.role === "both") && (
                 <Link to="/provider-dashboard" onClick={() => setMobileOpen(false)} style={{ display: "flex", alignItems: "center", padding: "16px 24px", borderBottom: `1px solid ${T.IK}`, textDecoration: "none", fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.IK }}>Provider Dashboard</Link>
               )}
               <button onClick={() => { localStorage.removeItem("access_token"); localStorage.removeItem("user"); window.location.href = "/login"; }}
-                style={{ display: "flex", alignItems: "center", padding: "16px 24px", width: "100%", borderBottom: `1px solid ${T.IK}`, textDecoration: "none", fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: "#ea5455", background: "transparent", border: "none", borderBottom: `1px solid ${T.IK}`, cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}>
+                style={{ display: "flex", alignItems: "center", padding: "16px 24px", width: "100%", borderBottom: `1px solid ${T.IK}`, textDecoration: "none", fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: "#ea5455", background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}>
                 Logout
               </button>
             </>

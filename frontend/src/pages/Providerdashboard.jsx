@@ -6,6 +6,8 @@
  *  - Quick-action cards linking to Manage Services and My Bookings
  *  - Active/pending booking feed
  *  - Profile snapshot + location status
+ *
+ * UPDATED: BookingRow now has a Chat button that opens the chat room.
  */
 
 import { useEffect, useState } from "react";
@@ -14,6 +16,7 @@ import SharedLayout, { T } from "../components/layouts/Sharedlayout";
 import { getMe } from "../handlers/userHandlers";
 import { getMyProviderDetails } from "../handlers/providerHandlers";
 import { getMyBookings, updateBookingStatus } from "../handlers/bookingHandlers";
+import { getOrCreateRoom } from "../handlers/chatHandlers";
 
 const SectionBar = ({ left, right }) => (
   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 48px", background: T.IK }}>
@@ -55,9 +58,9 @@ const ActionCard = ({ to, title, desc, cta }) => {
 };
 
 // ─── ACTIVE BOOKING ROW ──────────────────────────────────────────
-const BookingRow = ({ booking, onStatusUpdate }) => {
+const BookingRow = ({ booking, onStatusUpdate, onOpenChat }) => {
   const sc = STATUS_COLORS[booking.status] || { bg: T.LIGHT_IK, color: "#fff" };
-  const btnBase = { padding: "8px 16px", fontSize: 9, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.1em", cursor: "pointer", border: "none", fontFamily: "inherit", transition: "all 0.1s" };
+  const btnBase = { padding: "8px 14px", fontSize: 9, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.1em", cursor: "pointer", border: "none", fontFamily: "inherit", transition: "all 0.1s" };
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 0, borderBottom: `1px solid ${T.IK}`, background: "#fff" }}>
       <div style={{ width: 4, alignSelf: "stretch", background: sc.bg, flexShrink: 0 }} />
@@ -73,7 +76,7 @@ const BookingRow = ({ booking, onStatusUpdate }) => {
         </p>
         <p style={{ fontSize: 10, color: T.LIGHT_IK, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>📍 {booking.address}</p>
       </div>
-      <div style={{ display: "flex", gap: 8, padding: "0 16px", flexShrink: 0 }}>
+      <div style={{ display: "flex", gap: 8, padding: "0 16px", flexShrink: 0, alignItems: "center" }}>
         {booking.status === "requested" && (
           <>
             <button onClick={() => onStatusUpdate(booking.id, "accepted")} style={{ ...btnBase, background: T.IK, color: "#fff" }}
@@ -97,6 +100,18 @@ const BookingRow = ({ booking, onStatusUpdate }) => {
         )}
         {(booking.status === "completed" || booking.status === "cancelled" || booking.status === "rejected") && (
           <span style={{ fontSize: 9, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.1em", color: T.LIGHT_IK }}>—</span>
+        )}
+
+        {/* Chat button — always visible for provider on active bookings */}
+        {(booking.status === "requested" || booking.status === "accepted") && (
+          <button
+            onClick={() => onOpenChat(booking.id)}
+            title="Chat with customer"
+            style={{ ...btnBase, background: "transparent", border: `1px solid ${T.IK}`, color: T.IK, display: "flex", alignItems: "center", gap: 4 }}
+            onMouseEnter={e => { e.currentTarget.style.background = T.IK; e.currentTarget.style.color = "#fff"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = T.IK; }}>
+            💬 CHAT
+          </button>
         )}
       </div>
     </div>
@@ -139,6 +154,15 @@ const ProviderDashboard = () => {
       refreshBookings();
     } catch {
       alert("Failed to update status.");
+    }
+  };
+
+  const handleOpenChat = async (bookingId) => {
+    try {
+      const room = await getOrCreateRoom(bookingId);
+      navigate(`/chat/${room.id}`);
+    } catch (err) {
+      alert("Could not open chat. " + (err.response?.data?.detail || ""));
     }
   };
 
@@ -204,6 +228,12 @@ const ProviderDashboard = () => {
                 cta="View All"
               />
               <ActionCard
+                to="/chat"
+                title="Messages"
+                desc="Chat directly with customers about their bookings and requirements."
+                cta="Open Chat"
+              />
+              <ActionCard
                 to="/profile"
                 title="My Profile"
                 desc="Update your location coordinates and provider settings."
@@ -230,7 +260,7 @@ const ProviderDashboard = () => {
                 </div>
               ) : (
                 feedBookings.map(b => (
-                  <BookingRow key={b.id} booking={b} onStatusUpdate={handleStatusUpdate} />
+                  <BookingRow key={b.id} booking={b} onStatusUpdate={handleStatusUpdate} onOpenChat={handleOpenChat} />
                 ))
               )}
             </div>

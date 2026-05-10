@@ -39,6 +39,7 @@ import Howitworks from "./pages/Howitworks";
 import Terms from "./pages/Terms";
 import Contact from "./pages/Contact";
 import Help from "./pages/Help";
+import ChatPage from "./pages/ChatPage";
 
 
 // ── Auth guard helpers ────────────────────────────────────────────
@@ -69,6 +70,8 @@ const App = () => (
       <Route path="/contact" element={<Contact />}/>
       <Route path="/how-it-works" element={<Howitworks />}/>
       <Route path="/help" element={<Help />} />
+      <Route path="/chat"        element={<ChatPage />} />
+      <Route path="/chat/:roomId" element={<ChatPage />} /> 
 
       {/* Auth routes — replace these with your actual Login/Register components */}
        <Route path="/login"    element={<Login />} /> 

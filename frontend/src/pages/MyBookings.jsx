@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import SharedLayout, { T } from "../components/layouts/Sharedlayout";
 import { getMyBookings, updateBookingStatus } from "../handlers/bookingHandlers";
+import { getOrCreateRoom } from "../handlers/chatHandlers";
 
 const STATUS_COLORS = {
   requested: { bg: "#ff9f43", color: "#fff" },
@@ -20,6 +22,7 @@ const SectionBar = ({ left, right }) => (
 const MyBookings = () => {
   const [bookings, setBookings] = useState([]);
   const [loading,  setLoading]  = useState(true);
+  const navigate = useNavigate();
 
   const userStr    = localStorage.getItem("user");
   const currentUser = userStr ? (() => { try { return JSON.parse(userStr); } catch { return { role: "customer", id: null }; } })() : { role: "customer", id: null };
@@ -44,6 +47,15 @@ const MyBookings = () => {
       fetchBookings();
     } catch {
       alert("Failed to update status.");
+    }
+  };
+
+  const handleOpenChat = async (bookingId) => {
+    try {
+      const room = await getOrCreateRoom(bookingId);
+      navigate(`/chat/${room.id}`);
+    } catch (err) {
+      alert("Could not open chat. " + (err.response?.data?.detail || ""));
     }
   };
 
@@ -73,6 +85,7 @@ const MyBookings = () => {
                   isCustomer={isCustomer}
                   statusColor={sc}
                   onStatusUpdate={handleStatusUpdate}
+                  onOpenChat={handleOpenChat}
                 />
               );
             })}
@@ -83,8 +96,11 @@ const MyBookings = () => {
   );
 };
 
-const BookingCard = ({ booking, isCustomer, statusColor, onStatusUpdate }) => {
+const BookingCard = ({ booking, isCustomer, statusColor, onStatusUpdate, onOpenChat }) => {
   const btnBase = { padding: "10px 0", width: "100%", fontSize: 10, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", cursor: "pointer", transition: "all 0.1s", border: "none", fontFamily: "inherit" };
+
+  // Show chat button for active bookings (requested or accepted)
+  const canChat = booking.status === "requested" || booking.status === "accepted";
 
   return (
     <div style={{ background: "#fff", border: `1px solid ${T.IK}`, display: "flex", flexDirection: "row", gap: 0 }}>
@@ -156,6 +172,16 @@ const BookingCard = ({ booking, isCustomer, statusColor, onStatusUpdate }) => {
             onMouseEnter={e => { e.currentTarget.style.background = "#1fa055"; }}
             onMouseLeave={e => { e.currentTarget.style.background = "#28c76f"; }}>
             Mark Completed
+          </button>
+        )}
+
+        {/* Chat button — shown for active bookings */}
+        {canChat && (
+          <button onClick={() => onOpenChat(booking.id)}
+            style={{ ...btnBase, background: "transparent", border: `1px solid ${T.IK}`, color: T.IK, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+            onMouseEnter={e => { e.currentTarget.style.background = T.IK; e.currentTarget.style.color = "#fff"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = T.IK; }}>
+            💬 Chat
           </button>
         )}
 
