@@ -524,6 +524,16 @@ const BookingCard = ({
               </div>
             )}
 
+          {/* Chat button — shown for active bookings */}
+                {canChat && (
+                  <button onClick={() => onOpenChat(booking.id)}
+                    style={{ ...btnBase, background: "transparent", border: `1px solid ${T.IK}`, color: T.IK, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                    onMouseEnter={e => { e.currentTarget.style.background = T.IK; e.currentTarget.style.color = "#fff"; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = T.IK; }}>
+                    💬 Chat
+                  </button>
+                )}
+
           {/* Review Button */}
           {isCustomer &&
             booking.status === "completed" && (
@@ -559,16 +569,7 @@ const BookingCard = ({
               style={{
                 textAlign: "center",
                 fontSize: 10,
-        {/* Chat button — shown for active bookings */}
-        {canChat && (
-          <button onClick={() => onOpenChat(booking.id)}
-            style={{ ...btnBase, background: "transparent", border: `1px solid ${T.IK}`, color: T.IK, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
-            onMouseEnter={e => { e.currentTarget.style.background = T.IK; e.currentTarget.style.color = "#fff"; }}
-            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = T.IK; }}>
-            💬 Chat
-          </button>
-        )}
-
+                
                 fontWeight: 900,
                 textTransform: "uppercase",
                 letterSpacing: "0.1em",

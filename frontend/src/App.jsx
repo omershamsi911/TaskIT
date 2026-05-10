@@ -6,7 +6,7 @@ import FindServices      from "./pages/FindServices";
 import BookService       from "./pages/BookService";
 import MyBookings        from "./pages/MyBookings";
 import Profile           from "./pages/Profile";
-import ProviderDashboard from "./pages/ProviderDashboard";
+import ProviderDashboard from "./pages/Providerdashboard";
 import ManageServices    from "./pages/ManageServices";
 import Login from "./pages/Login"
 import Register from "./pages/Register"
