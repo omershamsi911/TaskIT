@@ -1,12 +1,27 @@
 import { useEffect, useState } from "react";
-import { getMe } from "../handlers/userHandlers"; // Assuming getMe is here now
+import SharedLayout, { T } from "../components/layouts/Sharedlayout";
+import { getMe } from "../handlers/userHandlers";
 import { getMyProviderDetails, updateProviderLocation } from "../handlers/providerHandlers";
 
+const SectionBar = ({ left, right }) => (
+  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 48px", background: T.IK }}>
+    <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.C }}>{left}</span>
+    <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: "#f5f0e6" }}>{right}</span>
+  </div>
+);
+
+const FieldBlock = ({ label, value }) => (
+  <div>
+    <p style={{ fontSize: 10, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.15em", color: T.LIGHT_IK, margin: "0 0 6px" }}>{label}</p>
+    <p style={{ fontSize: 14, fontWeight: 600, color: T.IK, margin: 0 }}>{value || "N/A"}</p>
+  </div>
+);
+
 const Profile = () => {
-  const [user, setUser] = useState(null);
+  const [user,            setUser]            = useState(null);
   const [providerDetails, setProviderDetails] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [loading,         setLoading]         = useState(true);
+  const [error,           setError]           = useState(null);
   const [locationLoading, setLocationLoading] = useState(false);
 
   useEffect(() => {
@@ -14,8 +29,6 @@ const Profile = () => {
       try {
         const userData = await getMe();
         setUser(userData);
-
-        // If user is a provider, fetch their specific provider profile to check lat/lng
         if (userData.role === "provider" || userData.role === "both") {
           const provData = await getMyProviderDetails();
           setProviderDetails(provData);
@@ -32,127 +45,108 @@ const Profile = () => {
 
   const handleSetLocation = () => {
     setLocationLoading(true);
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          try {
-            const updatedProvider = await updateProviderLocation(
-              position.coords.latitude,
-              position.coords.longitude
-            );
-            setProviderDetails(updatedProvider);
-            alert("Location saved successfully! You are now visible to customers.");
-          } catch (err) {
-            alert("Failed to save location to the server.");
-          } finally {
-            setLocationLoading(false);
-          }
-        },
-        (error) => {
-          alert("Location access denied. Please enable it in your browser settings.");
-          setLocationLoading(false);
-        }
-      );
-    } else {
+    if (!("geolocation" in navigator)) {
       alert("Geolocation is not supported by your browser.");
       setLocationLoading(false);
+      return;
     }
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const updatedProvider = await updateProviderLocation(position.coords.latitude, position.coords.longitude);
+          setProviderDetails(updatedProvider);
+          alert("Location saved! You are now visible to customers.");
+        } catch {
+          alert("Failed to save location to the server.");
+        } finally {
+          setLocationLoading(false);
+        }
+      },
+      () => { alert("Location access denied."); setLocationLoading(false); }
+    );
   };
 
-  if (loading) return <div className="p-6 font-bold uppercase animate-pulse">Loading Profile...</div>;
-  if (error) return <div className="p-6 text-[#ea5455] font-bold uppercase">{error}</div>;
-
-  const isProvider = user.role === "provider" || user.role === "both";
-  const needsLocation = isProvider && (!providerDetails?.lat || !providerDetails?.lng);
-
   return (
-    <div className="max-w-3xl">
-      <h1 className="text-[40px] font-bold mb-8 uppercase leading-none tracking-tight">
-        My Profile
-      </h1>
+    <SharedLayout>
+      <SectionBar left="MY PROFILE" right="ACCOUNT SETTINGS" />
 
-      {/* LOCATION WARNING BANNER */}
-      {needsLocation && (
-        <div className="bg-[#ea5455]/10 border border-[#ea5455] p-6 mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h3 className="text-[#ea5455] font-bold uppercase mb-1">Action Required: Set Your Location</h3>
-            <p className="text-sm text-[#111111]">
-              Your services will not appear in local searches until you set your operational coordinates.
-            </p>
-          </div>
-          <button
-            onClick={handleSetLocation}
-            disabled={locationLoading}
-            className="bg-[#ea5455] text-white px-6 py-3 font-bold uppercase text-xs hover:bg-[#d44848] transition-colors whitespace-nowrap disabled:opacity-50"
-          >
-            {locationLoading ? "Detecting..." : "Auto-Detect & Save"}
-          </button>
-        </div>
-      )}
+      <div style={{ maxWidth: 860, margin: "0 auto", padding: "40px 32px" }}>
+        {loading ? (
+          <div style={{ textAlign: "center", padding: "80px 0", fontSize: 14, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.15em", color: T.LIGHT_IK }}>LOADING PROFILE...</div>
+        ) : error ? (
+          <div style={{ textAlign: "center", padding: "80px 0", color: "#ea5455", fontSize: 14, fontWeight: 900, textTransform: "uppercase" }}>{error}</div>
+        ) : (
+          <>
+            {/* Location warning banner */}
+            {(user.role === "provider" || user.role === "both") && (!providerDetails?.lat || !providerDetails?.lng) && (
+              <div style={{ background: "rgba(234,84,85,0.08)", border: `1px solid #ea5455`, padding: "20px 28px", marginBottom: 32, display: "flex", flexDirection: "column", gap: 16 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
+                  <div>
+                    <h3 style={{ color: "#ea5455", fontWeight: 900, textTransform: "uppercase", fontSize: 12, letterSpacing: "0.1em", margin: "0 0 4px" }}>Action Required: Set Your Location</h3>
+                    <p style={{ fontSize: 11, color: T.IK, margin: 0 }}>Your services won't appear in local searches until you set your coordinates.</p>
+                  </div>
+                  <button onClick={handleSetLocation} disabled={locationLoading}
+                    style={{ padding: "12px 24px", fontSize: 10, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", background: "#ea5455", color: "#fff", border: "none", cursor: "pointer", opacity: locationLoading ? 0.6 : 1, whiteSpace: "nowrap", fontFamily: "inherit" }}>
+                    {locationLoading ? "DETECTING..." : "AUTO-DETECT & SAVE"}
+                  </button>
+                </div>
+              </div>
+            )}
 
-      {/* BASIC USER INFO */}
-      <div className="bg-white border border-[#1a1a1a] p-8 flex flex-col gap-6 mb-8">
-        <div className="flex items-center gap-6 border-b border-[#1a1a1a] pb-6">
-          <div className="w-24 h-24 bg-[#111111] rounded-full flex items-center justify-center text-white text-[32px] font-bold shrink-0">
-            {user.full_name.charAt(0).toUpperCase()}
-          </div>
-          <div>
-            <h2 className="text-[28px] font-bold uppercase m-0 leading-tight">
-              {user.full_name}
-            </h2>
-            <div className="flex gap-2 mt-2">
-              <span className="bg-[#111111] text-white px-2 py-1 text-[10px] uppercase font-bold tracking-widest">
-                {user.role}
-              </span>
+            {/* User info card */}
+            <div style={{ background: "#fff", border: `1px solid ${T.IK}`, marginBottom: 24, overflow: "hidden" }}>
+              <div style={{ padding: "12px 24px", background: T.IK, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: 10, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.15em", color: T.C }}>BASIC INFO</span>
+                <span style={{ fontSize: 9, fontWeight: 900, color: "#f5f0e6", opacity: 0.4 }}>§ 001</span>
+              </div>
+              <div style={{ padding: "32px 28px" }}>
+                {/* Avatar + name */}
+                <div style={{ display: "flex", alignItems: "center", gap: 24, paddingBottom: 24, marginBottom: 24, borderBottom: `1px solid ${T.IK}` }}>
+                  <div style={{ width: 72, height: 72, borderRadius: "50%", background: T.IK, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, fontWeight: 900, flexShrink: 0 }}>
+                    {user.full_name?.charAt(0)?.toUpperCase() || "U"}
+                  </div>
+                  <div>
+                    <h2 style={{ fontSize: 24, fontWeight: 900, textTransform: "uppercase", letterSpacing: "-0.01em", color: T.IK, margin: "0 0 8px" }}>{user.full_name}</h2>
+                    <span style={{ padding: "4px 10px", fontSize: 9, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.15em", background: T.IK, color: "#fff" }}>
+                      {user.role}
+                    </span>
+                  </div>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 24 }}>
+                  <FieldBlock label="Email Address" value={user.email} />
+                  <FieldBlock label="Phone Number"  value={user.phone} />
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <p className="text-[12px] font-bold text-[#6b6b6b] uppercase tracking-wide mb-1">
-              Email Address
-            </p>
-            <p className="text-[14px] font-medium">{user.email || "N/A"}</p>
-          </div>
-          <div>
-            <p className="text-[12px] font-bold text-[#6b6b6b] uppercase tracking-wide mb-1">
-              Phone Number
-            </p>
-            <p className="text-[14px] font-medium">{user.phone}</p>
-          </div>
-        </div>
+            {/* Provider settings */}
+            {(user.role === "provider" || user.role === "both") && providerDetails && (
+              <div style={{ background: "#fff", border: `1px solid ${T.IK}`, overflow: "hidden" }}>
+                <div style={{ padding: "12px 24px", background: T.IK, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: 10, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.15em", color: T.C }}>PROVIDER SETTINGS</span>
+                  <span style={{ fontSize: 9, fontWeight: 900, color: "#f5f0e6", opacity: 0.4 }}>§ 002</span>
+                </div>
+                <div style={{ padding: "28px", display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 24 }}>
+                  <FieldBlock label="Service Radius" value={`${providerDetails.service_radius_km} km`} />
+                  <div>
+                    <p style={{ fontSize: 10, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.15em", color: T.LIGHT_IK, margin: "0 0 6px" }}>Location Coordinates</p>
+                    <p style={{ fontSize: 14, fontWeight: 600, color: T.IK, margin: "0 0 8px" }}>
+                      {providerDetails.lat ? `${Number(providerDetails.lat).toFixed(4)}, ${Number(providerDetails.lng).toFixed(4)}` : "Not Set"}
+                    </p>
+                    {providerDetails.lat && (
+                      <button onClick={handleSetLocation}
+                        style={{ fontSize: 10, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.1em", color: T.C, background: "transparent", border: "none", cursor: "pointer", padding: 0, fontFamily: "inherit" }}>
+                        Update Location →
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
-
-      {/* PROVIDER SPECIFIC INFO */}
-      {isProvider && providerDetails && (
-        <div className="bg-white border border-[#1a1a1a] p-8 flex flex-col gap-6">
-          <h3 className="font-bold uppercase text-lg border-b border-[#1a1a1a] pb-4">Provider Settings</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <p className="text-[12px] font-bold text-[#6b6b6b] uppercase tracking-wide mb-1">
-                Service Radius
-              </p>
-              <p className="text-[14px] font-medium">{providerDetails.service_radius_km} km</p>
-            </div>
-            <div>
-              <p className="text-[12px] font-bold text-[#6b6b6b] uppercase tracking-wide mb-1">
-                Location Coordinates
-              </p>
-              <p className="text-[14px] font-medium">
-                {providerDetails.lat ? `${providerDetails.lat}, ${providerDetails.lng}` : "Not Set"}
-              </p>
-              {providerDetails.lat && (
-                 <button onClick={handleSetLocation} className="text-[#ff4d2d] text-xs font-bold uppercase mt-2 hover:underline">
-                   Update Location
-                 </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </SharedLayout>
   );
 };
 

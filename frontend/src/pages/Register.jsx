@@ -22,21 +22,60 @@ const Register = () => {
   };
 
   const onSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-    try {
-      const data = await handleSignup(formData);
-      localStorage.setItem("access_token", data.access_token);
-      localStorage.setItem("refresh_token", data.refresh_token);
-      localStorage.setItem("user", JSON.stringify({ role: formData.role, full_name: formData.full_name }));
-      navigate("/profile");
-    } catch (err) {
-      setError(err);
-    } finally {
-      setLoading(false);
+  e.preventDefault();
+
+  setError(null);
+  setLoading(true);
+
+  try {
+    const data = await handleSignup(formData);
+
+    const accessToken =
+      data?.tokens?.access_token ||
+      data?.access_token;
+
+    const refreshToken =
+      data?.tokens?.refresh_token ||
+      data?.refresh_token;
+
+    const userData =
+      data?.user || {
+        full_name: formData.full_name,
+        email: formData.email,
+        phone: formData.phone,
+        role: formData.role,
+      };
+
+    if (accessToken) {
+      localStorage.setItem(
+        "access_token",
+        accessToken
+      );
     }
-  };
+
+    if (refreshToken) {
+      localStorage.setItem(
+        "refresh_token",
+        refreshToken
+      );
+    }
+
+    localStorage.setItem(
+      "user",
+      JSON.stringify(userData)
+    );
+
+    navigate("/profile");
+  } catch (err) {
+    setError(
+      err?.message ||
+      err ||
+      "Registration failed"
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   const fields = [
     { name: "full_name", label: "FULL NAME",     type: "text",     placeholder: "YOUR FULL NAME" },

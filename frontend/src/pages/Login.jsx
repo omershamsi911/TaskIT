@@ -20,22 +20,46 @@ const Login = () => {
   };
 
   const onSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-    try {
-      const data = await handleEmailLogin(formData);
-      localStorage.setItem("access_token", data.tokens.access_token);
-      localStorage.setItem("refresh_token", data.tokens.refresh_token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      navigate("/services");
-    } catch (err) {
-      setError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  e.preventDefault();
 
+  setError(null);
+  setLoading(true);
+
+  try {
+    const data = await handleEmailLogin(formData);
+
+    const accessToken =
+      data?.tokens?.access_token || data?.access_token;
+
+    const refreshToken =
+      data?.tokens?.refresh_token || data?.refresh_token;
+
+    const userData = data?.user || data;
+
+    if (accessToken) {
+      localStorage.setItem("access_token", accessToken);
+    }
+
+    if (refreshToken) {
+      localStorage.setItem("refresh_token", refreshToken);
+    }
+
+    localStorage.setItem(
+      "user",
+      JSON.stringify(userData)
+    );
+
+    navigate("/services");
+  } catch (err) {
+    setError(
+      err?.message ||
+      err ||
+      "Login failed"
+    );
+  } finally {
+    setLoading(false);
+  }
+};
   return (
     <div style={{ minHeight: "calc(100vh - 64px)", background: T.CR, display: "flex", alignItems: "center", justifyContent: "center", padding: 24, position: "relative", fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}>
 
