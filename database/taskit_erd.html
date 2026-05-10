@@ -1,0 +1,463 @@
+
+<div id="erd" style="padding:8px 0"></div>
+<script type="module">
+import mermaid from 'https://esm.sh/mermaid@11/dist/mermaid.esm.min.mjs';
+const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+await document.fonts.ready;
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'base',
+  fontFamily: '"Anthropic Sans", sans-serif',
+  themeVariables: {
+    darkMode: dark,
+    fontSize: '12px',
+    fontFamily: '"Anthropic Sans", sans-serif',
+    lineColor: dark ? '#9c9a92' : '#73726c',
+    textColor: dark ? '#c2c0b6' : '#3d3d3a',
+  },
+});
+const diagram = `erDiagram
+  users ||--o{ addresses : has
+  users ||--o{ bookings : places
+  users ||--o{ reviews : writes
+  users ||--o{ user_loyalty_points : earns
+  users ||--o{ referrals : refers
+  users ||--o{ notifications : receives
+  users ||--o{ wallet_transactions : owns
+  users ||--o{ reports : files
+  users ||--o{ chats : participates
+
+  providers ||--|| users : "is a"
+  providers ||--o{ provider_services : offers
+  providers ||--o{ provider_availability : sets
+  providers ||--o{ provider_documents : uploads
+  providers ||--o{ provider_badges : earns
+  providers ||--o{ bookings : receives
+  providers ||--o{ earnings : tracks
+  providers ||--o{ reviews : receives
+  providers ||--o{ subscription_plans : subscribes
+
+  categories ||--o{ subcategories : has
+  subcategories ||--o{ provider_services : belongs_to
+
+  bookings ||--o{ booking_status_history : tracks
+  bookings ||--|| payments : has
+  bookings ||--o{ job_photos : has
+  bookings ||--o{ reviews : generates
+  bookings ||--|| chats : has
+
+  payments ||--o{ wallet_transactions : uses
+  payments ||--o{ invoices : generates
+
+  disputes ||--|| bookings : for
+  disputes ||--o{ dispute_messages : has
+
+  admin_users ||--o{ disputes : resolves
+  admin_users ||--o{ reports : handles
+
+  users {
+    BIGINT id PK
+    VARCHAR full_name
+    VARCHAR email UK
+    VARCHAR phone UK
+    VARCHAR password_hash
+    ENUM role
+    ENUM status
+    VARCHAR avatar_url
+    VARCHAR referral_code UK
+    BIGINT referred_by FK
+    DECIMAL wallet_balance
+    INT loyalty_points
+    TINYINT is_verified
+    TINYINT is_business_account
+    VARCHAR business_name
+    DATETIME last_login_at
+    DATETIME created_at
+    DATETIME updated_at
+    DATETIME deleted_at
+  }
+
+  providers {
+    BIGINT id PK
+    BIGINT user_id FK
+    TEXT bio
+    DECIMAL avg_rating
+    INT total_reviews
+    INT total_completed_jobs
+    INT total_cancelled_jobs
+    DECIMAL response_rate
+    INT avg_response_minutes
+    DECIMAL service_radius_km
+    DECIMAL lat
+    DECIMAL lng
+    ENUM availability_status
+    TINYINT is_featured
+    DECIMAL trust_score
+    DATETIME profile_approved_at
+    DATETIME created_at
+    DATETIME updated_at
+  }
+
+  categories {
+    INT id PK
+    VARCHAR name
+    VARCHAR slug UK
+    VARCHAR icon_url
+    TINYINT is_active
+    INT sort_order
+  }
+
+  subcategories {
+    INT id PK
+    INT category_id FK
+    VARCHAR name
+    VARCHAR slug UK
+    TINYINT is_active
+  }
+
+  provider_services {
+    BIGINT id PK
+    BIGINT provider_id FK
+    INT subcategory_id FK
+    VARCHAR title
+    TEXT description
+    ENUM pricing_type
+    DECIMAL base_price
+    DECIMAL max_price
+    VARCHAR price_unit
+    TINYINT is_active
+    DATETIME created_at
+  }
+
+  addresses {
+    BIGINT id PK
+    BIGINT user_id FK
+    VARCHAR label
+    VARCHAR address_line1
+    VARCHAR address_line2
+    VARCHAR city
+    VARCHAR province
+    DECIMAL lat
+    DECIMAL lng
+    TINYINT is_default
+    DATETIME created_at
+  }
+
+  bookings {
+    BIGINT id PK
+    VARCHAR booking_ref UK
+    BIGINT user_id FK
+    BIGINT provider_id FK
+    BIGINT service_id FK
+    BIGINT address_id FK
+    ENUM status
+    TEXT description
+    DATETIME scheduled_at
+    DATETIME started_at
+    DATETIME completed_at
+    DECIMAL quoted_price
+    DECIMAL final_price
+    DECIMAL platform_fee
+    TEXT cancellation_reason
+    BIGINT cancelled_by FK
+    DATETIME created_at
+    DATETIME updated_at
+  }
+
+  booking_status_history {
+    BIGINT id PK
+    BIGINT booking_id FK
+    ENUM status
+    BIGINT changed_by FK
+    TEXT note
+    DATETIME created_at
+  }
+
+  payments {
+    BIGINT id PK
+    BIGINT booking_id FK
+    BIGINT user_id FK
+    DECIMAL amount
+    DECIMAL platform_fee
+    DECIMAL provider_payout
+    ENUM method
+    ENUM status
+    VARCHAR gateway_txn_id
+    TEXT gateway_response
+    ENUM escrow_status
+    DATETIME escrow_released_at
+    DATETIME created_at
+    DATETIME updated_at
+  }
+
+  wallet_transactions {
+    BIGINT id PK
+    BIGINT user_id FK
+    ENUM type
+    DECIMAL amount
+    DECIMAL balance_after
+    VARCHAR ref_id
+    VARCHAR ref_type
+    TEXT note
+    DATETIME created_at
+  }
+
+  earnings {
+    BIGINT id PK
+    BIGINT provider_id FK
+    BIGINT booking_id FK
+    BIGINT payment_id FK
+    DECIMAL gross_amount
+    DECIMAL platform_fee
+    DECIMAL net_amount
+    ENUM status
+    DATETIME payout_at
+    DATETIME created_at
+  }
+
+  reviews {
+    BIGINT id PK
+    BIGINT booking_id FK
+    BIGINT reviewer_id FK
+    BIGINT reviewee_id FK
+    ENUM reviewer_role
+    TINYINT rating
+    TEXT comment
+    TINYINT is_flagged
+    TINYINT is_verified
+    FLOAT sentiment_score
+    VARCHAR ai_summary
+    INT helpful_count
+    DATETIME created_at
+    DATETIME updated_at
+  }
+
+  review_helpful_votes {
+    BIGINT id PK
+    BIGINT review_id FK
+    BIGINT user_id FK
+    DATETIME created_at
+  }
+
+  chats {
+    BIGINT id PK
+    BIGINT booking_id FK
+    BIGINT user_id FK
+    BIGINT provider_id FK
+    TINYINT is_active
+    DATETIME created_at
+  }
+
+  chat_messages {
+    BIGINT id PK
+    BIGINT chat_id FK
+    BIGINT sender_id FK
+    ENUM message_type
+    TEXT content
+    VARCHAR attachment_url
+    TINYINT is_read
+    DATETIME read_at
+    DATETIME created_at
+  }
+
+  provider_availability {
+    BIGINT id PK
+    BIGINT provider_id FK
+    TINYINT day_of_week
+    TIME start_time
+    TIME end_time
+    TINYINT is_available
+  }
+
+  provider_documents {
+    BIGINT id PK
+    BIGINT provider_id FK
+    ENUM document_type
+    VARCHAR file_url
+    ENUM verification_status
+    TEXT rejection_reason
+    BIGINT verified_by FK
+    DATETIME verified_at
+    DATETIME created_at
+  }
+
+  provider_badges {
+    BIGINT id PK
+    BIGINT provider_id FK
+    ENUM badge_type
+    DATETIME awarded_at
+    DATETIME expires_at
+  }
+
+  job_photos {
+    BIGINT id PK
+    BIGINT booking_id FK
+    BIGINT uploaded_by FK
+    ENUM photo_type
+    VARCHAR url
+    VARCHAR caption
+    DATETIME created_at
+  }
+
+  invoices {
+    BIGINT id PK
+    BIGINT payment_id FK
+    BIGINT booking_id FK
+    VARCHAR invoice_number UK
+    DECIMAL subtotal
+    DECIMAL platform_fee
+    DECIMAL total
+    ENUM status
+    TEXT pdf_url
+    DATETIME issued_at
+  }
+
+  disputes {
+    BIGINT id PK
+    BIGINT booking_id FK
+    BIGINT raised_by FK
+    ENUM dispute_type
+    TEXT description
+    ENUM status
+    BIGINT assigned_to FK
+    TEXT resolution_note
+    DECIMAL refund_amount
+    DATETIME resolved_at
+    DATETIME created_at
+    DATETIME updated_at
+  }
+
+  dispute_messages {
+    BIGINT id PK
+    BIGINT dispute_id FK
+    BIGINT sender_id FK
+    TEXT message
+    VARCHAR attachment_url
+    DATETIME created_at
+  }
+
+  notifications {
+    BIGINT id PK
+    BIGINT user_id FK
+    ENUM type
+    VARCHAR title
+    TEXT body
+    VARCHAR ref_id
+    VARCHAR ref_type
+    TINYINT is_read
+    DATETIME read_at
+    DATETIME created_at
+  }
+
+  subscription_plans {
+    BIGINT id PK
+    BIGINT provider_id FK
+    ENUM plan_type
+    DECIMAL price
+    DATETIME starts_at
+    DATETIME ends_at
+    ENUM status
+    DATETIME created_at
+  }
+
+  listing_boosts {
+    BIGINT id PK
+    BIGINT provider_id FK
+    BIGINT service_id FK
+    DECIMAL amount_paid
+    DATETIME starts_at
+    DATETIME ends_at
+    TINYINT is_active
+    DATETIME created_at
+  }
+
+  user_loyalty_points {
+    BIGINT id PK
+    BIGINT user_id FK
+    ENUM event_type
+    INT points
+    INT balance_after
+    VARCHAR ref_id
+    DATETIME created_at
+  }
+
+  referrals {
+    BIGINT id PK
+    BIGINT referrer_id FK
+    BIGINT referred_id FK
+    ENUM status
+    INT points_awarded
+    DATETIME created_at
+  }
+
+  reports {
+    BIGINT id PK
+    BIGINT reporter_id FK
+    BIGINT reported_id FK
+    ENUM entity_type
+    VARCHAR entity_id
+    ENUM reason
+    TEXT description
+    ENUM status
+    BIGINT handled_by FK
+    DATETIME created_at
+    DATETIME updated_at
+  }
+
+  ai_match_logs {
+    BIGINT id PK
+    BIGINT user_id FK
+    BIGINT booking_id FK
+    JSON candidates_json
+    BIGINT selected_provider FK
+    FLOAT distance_score
+    FLOAT rating_score
+    FLOAT price_score
+    FLOAT response_score
+    FLOAT final_score
+    DATETIME created_at
+  }
+
+  admin_users {
+    INT id PK
+    VARCHAR name
+    VARCHAR email UK
+    VARCHAR password_hash
+    ENUM role
+    TINYINT is_active
+    DATETIME created_at
+  }
+
+  platform_settings {
+    INT id PK
+    VARCHAR key UK
+    TEXT value
+    VARCHAR description
+    DATETIME updated_at
+  }
+`;
+const { svg } = await mermaid.render('erd-svg', diagram);
+document.getElementById('erd').innerHTML = svg;
+document.querySelectorAll('#erd svg .node').forEach(node => {
+  const firstPath = node.querySelector('path[d]');
+  if (!firstPath) return;
+  const d = firstPath.getAttribute('d');
+  const nums = d.match(/-?[\d.]+/g)?.map(Number);
+  if (!nums || nums.length < 8) return;
+  const xs = [nums[0], nums[2], nums[4], nums[6]];
+  const ys = [nums[1], nums[3], nums[5], nums[7]];
+  const x = Math.min(...xs), y = Math.min(...ys);
+  const w = Math.max(...xs) - x, h = Math.max(...ys) - y;
+  const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  rect.setAttribute('x', x); rect.setAttribute('y', y);
+  rect.setAttribute('width', w); rect.setAttribute('height', h);
+  rect.setAttribute('rx', '8');
+  for (const a of ['fill', 'stroke', 'stroke-width', 'class', 'style']) {
+    if (firstPath.hasAttribute(a)) rect.setAttribute(a, firstPath.getAttribute(a));
+  }
+  firstPath.replaceWith(rect);
+});
+document.querySelectorAll('#erd svg .row-rect-odd path, #erd svg .row-rect-even path').forEach(p => {
+  p.setAttribute('stroke', 'none');
+});
+</script>
