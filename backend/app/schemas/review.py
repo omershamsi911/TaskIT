@@ -9,6 +9,7 @@ class ReviewCreate(BaseModel):
 
 class ReviewResponse(BaseModel):
     id: int
+    booking_id: int
     reviewer_id: int
     reviewee_id: int
     reviewer_role: str

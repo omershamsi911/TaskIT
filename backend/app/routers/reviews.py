@@ -24,3 +24,14 @@ async def get_provider_reviews(
 ):
     service = ReviewService(db)
     return await service.get_reviews_for_provider(provider_id)
+
+@router.get("/user/{user_id}", response_model=List[ReviewResponse])
+async def get_user_reviews(
+    user_id: int,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get all VERIFIED reviews for a specific user (provider or customer).
+    """
+    service = ReviewService(db)
+    return await service.get_reviews_for_user(user_id)

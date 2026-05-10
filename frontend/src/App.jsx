@@ -6,7 +6,7 @@ import FindServices      from "./pages/FindServices";
 import BookService       from "./pages/BookService";
 import MyBookings        from "./pages/MyBookings";
 import Profile           from "./pages/Profile";
-import ProviderDashboard from "./pages/Providerdashboard";
+import ProviderDashboard from "./pages/ProviderDashboard";
 import ManageServices    from "./pages/ManageServices";
 import Login from "./pages/Login"
 import Register from "./pages/Register"
@@ -18,6 +18,8 @@ import Terms from "./pages/Terms";
 import Contact from "./pages/Contact";
 import Help from "./pages/Help";
 import Pricing from "./pages/Pricing"
+import { Provider } from "react-redux";
+import {store} from "./store/store"
 import ChatPage from "./pages/ChatPage";
 
 
@@ -39,6 +41,7 @@ const RequireProvider = ({ children }) =>
 // ── App ───────────────────────────────────────────────────────────
 const App = () => (
   <BrowserRouter>
+  <Provider store={store}>
     <Routes>
       {/* Public */}
       <Route path="/"        element={<Landing />} />
@@ -71,6 +74,7 @@ const App = () => (
 
       <Route path="*" element={<NotFound />} />
     </Routes>
+  </Provider>
   </BrowserRouter>
 );
 
