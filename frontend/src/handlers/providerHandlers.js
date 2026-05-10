@@ -19,7 +19,8 @@ export const deleteProviderService = async (serviceId) => {
 
 export const getAllServices = async (skip = 0, limit = 100) => {
   const response = await api.get(`/providers/all-services?skip=${skip}&limit=${limit}`);
-  return response.data;
+  console.log(response.data)
+  return response.data.data;
 };
 
 export const searchProviders = async (lat, lng, maxDistanceKm = 10, categoryId = null) => {

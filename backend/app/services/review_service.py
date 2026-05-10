@@ -5,6 +5,7 @@ from app.models.booking import Booking
 from app.schemas.review import ReviewCreate
 from app.services.ai_services import AIService
 from fastapi import HTTPException
+from sqlalchemy.orm import selectinload
 
 class ReviewService:
     def __init__(self, db: AsyncSession):
@@ -12,7 +13,13 @@ class ReviewService:
 
     async def create_review(self, user_id: int, data: ReviewCreate):
         # 1. Fetch the booking
-        booking = await self.db.get(Booking, data.booking_id)
+        stmt = (
+            select(Booking)
+            .options(selectinload(Booking.provider))
+            .where(Booking.id == data.booking_id)
+        )
+        result = await self.db.execute(stmt)
+        booking = result.scalar_one_or_none()
         if not booking:
             raise HTTPException(status_code=404, detail="Booking not found")
 

@@ -52,6 +52,7 @@ const FindServices = () => {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
+
   }, []);
 
   // Apply filters + sort
