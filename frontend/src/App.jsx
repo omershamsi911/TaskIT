@@ -1,25 +1,3 @@
-/**
- * App.jsx — Route configuration for TASKIT with role-based separation
- * ─────────────────────────────────────────────────────────────────────
- * Drop this into your src/App.jsx (or wherever your router lives).
- *
- * Routes:
- *  PUBLIC (no login required)
- *    /               → Landing
- *    /services       → FindServices   (browse; booking prompts login)
- *    /login          → your Login page
- *    /register       → your Register page
- *
- *  CUSTOMER + PROVIDER (login required)
- *    /book-service   → BookService
- *    /my-bookings    → MyBookings
- *    /profile        → Profile
- *
- *  PROVIDER ONLY (redirects non-providers to /)
- *    /provider-dashboard → ProviderDashboard
- *    /manage-services    → ManageServices
- */
-
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 // Pages
@@ -28,7 +6,7 @@ import FindServices      from "./pages/FindServices";
 import BookService       from "./pages/BookService";
 import MyBookings        from "./pages/MyBookings";
 import Profile           from "./pages/Profile";
-import ProviderDashboard from "./pages/ProviderDashboard";
+import ProviderDashboard from "./pages/Providerdashboard";
 import ManageServices    from "./pages/ManageServices";
 import Login from "./pages/Login"
 import Register from "./pages/Register"
@@ -39,6 +17,7 @@ import Howitworks from "./pages/Howitworks";
 import Terms from "./pages/Terms";
 import Contact from "./pages/Contact";
 import Help from "./pages/Help";
+import Pricing from "./pages/Pricing"
 import ChatPage from "./pages/ChatPage";
 
 
@@ -70,6 +49,7 @@ const App = () => (
       <Route path="/contact" element={<Contact />}/>
       <Route path="/how-it-works" element={<Howitworks />}/>
       <Route path="/help" element={<Help />} />
+      <Route path="/pricing" element={<Pricing />} />
       <Route path="/chat"        element={<ChatPage />} />
       <Route path="/chat/:roomId" element={<ChatPage />} /> 
 
@@ -85,6 +65,7 @@ const App = () => (
       {/* Provider only */}
       <Route path="/provider-dashboard" element={<RequireAuth><RequireProvider><ProviderDashboard /></RequireProvider></RequireAuth>} />
       <Route path="/manage-services"    element={<RequireAuth><RequireProvider><ManageServices /></RequireProvider></RequireAuth>} />
+
 
       {/* Catch-all */}
 
