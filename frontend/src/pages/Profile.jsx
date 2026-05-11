@@ -3,6 +3,7 @@ import SharedLayout, { T } from "../components/layouts/Sharedlayout";
 import { getMe } from "../handlers/userHandlers";
 import { getMyProviderDetails, updateProviderLocation } from "../handlers/providerHandlers";
 import { getUserReviews } from "../handlers/reviewHandlers";
+import { useNotify } from "../context/NotificationContext";
 
 const SectionBar = ({ left, right }) => (
   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 48px", background: T.IK }}>
@@ -64,6 +65,7 @@ const Profile = () => {
   const [loading,         setLoading]         = useState(true);
   const [error,           setError]           = useState(null);
   const [locationLoading, setLocationLoading] = useState(false);
+  const notify =  useNotify();
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -92,7 +94,7 @@ const Profile = () => {
   const handleSetLocation = () => {
     setLocationLoading(true);
     if (!("geolocation" in navigator)) {
-      alert("Geolocation is not supported by your browser.");
+      notify("Geolocation is not supported by your browser.");
       setLocationLoading(false);
       return;
     }
@@ -101,14 +103,14 @@ const Profile = () => {
         try {
           const updatedProvider = await updateProviderLocation(position.coords.latitude, position.coords.longitude);
           setProviderDetails(updatedProvider);
-          alert("Location saved! You are now visible to customers.");
+          notify("Location saved! You are now visible to customers.", "success");
         } catch {
-          alert("Failed to save location to the server.");
+          notify("Failed to save location to the server.", "errpr");
         } finally {
           setLocationLoading(false);
         }
       },
-      () => { alert("Location access denied."); setLocationLoading(false); }
+      () => { notify("Location access denied.", "error"); setLocationLoading(false); }
     );
   };
 

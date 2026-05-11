@@ -11,6 +11,7 @@ import {
 import ReviewModal from "../components/ReviewModal";
 import { getOrCreateRoom } from "../handlers/chatHandlers";
 import api from "../api/api";
+import { useNotify } from "../context/NotificationContext";
 
 const T = {
   C: "#FF5733",
@@ -85,6 +86,7 @@ const SectionBar = ({ left, right }) => (
 
 const MyBookings = () => {
   const reduxUser = useSelector((state) => state.auth?.user);
+  const {notify} = useNotify();
 
   const userStr = localStorage.getItem("user");
 
@@ -146,7 +148,7 @@ const MyBookings = () => {
       fetchBookings();
     } catch (err) {
       console.error(err);
-      alert("Failed to update booking status.");
+      notify("Failed to update booking status.", "error");
     }
   };
 
@@ -160,9 +162,10 @@ const MyBookings = () => {
       const room = await getOrCreateRoom(bookingId);
       navigate(`/chat/${room.id}`);
     } catch (err) {
-      alert(
+      notify(
         "Could not open chat. " +
-          (err.response?.data?.detail || "")
+          (err.response?.data?.detail || ""),
+          "error"
       );
     }
   };
@@ -178,12 +181,12 @@ const MyBookings = () => {
         reason,
       });
 
-      alert(
-        "Dispute filed. Admin will reach out shortly."
+      notify(
+        "Dispute filed. Admin will reach out shortly.", "error"
       );
     } catch (err) {
       console.error(err);
-      alert("Failed to file dispute.");
+      notify("Failed to file dispute.", "error");
     }
   };
 

@@ -4,6 +4,7 @@ import SharedLayout, { T } from "../components/layouts/Sharedlayout";
 import { getAllServices, searchProviders } from "../handlers/providerHandlers";
 import { getCategories } from "../handlers/categoryHandlers";
 import { getUserReviews } from "../handlers/reviewHandlers";
+import { useNotify } from "../context/NotificationContext";
 
 // ─── HELPERS ──────────────────────────────────────────────────────
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -41,6 +42,7 @@ const FindServices = () => {
   const [userLocation, setUserLocation] = useState(null);
   const [locationLoading, setLocationLoading] = useState(false);
   const [reviewsData, setReviewsData] = useState({});
+  const notify = useNotify();
 
   const [filters, setFilters] = useState({ categoryId: "ALL", search: "", sort: "recommended" });
   const [currentPage, setCurrentPage] = useState(1);
@@ -135,7 +137,7 @@ const FindServices = () => {
           setLocationLoading(false);
         }
       },
-      () => { alert("Location access denied."); setLocationLoading(false); }
+      () => { notify("Location access denied.", "error"); setLocationLoading(false); }
     );
   };
 

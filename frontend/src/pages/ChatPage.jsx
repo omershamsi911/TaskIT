@@ -23,6 +23,7 @@ import {
   getRoomMessages,
   buildWsUrl,
 } from "../handlers/chatHandlers";
+import { useNotify } from "../context/NotificationContext";
 
 // ─── UTILS ────────────────────────────────────────────────────────
 const fmtTime = (iso) =>
@@ -218,6 +219,7 @@ const useVoiceRecorder = (onResult) => {
   const mediaRef   = useRef(null);
   const chunksRef  = useRef([]);
   const timerRef   = useRef(null);
+  const notify = useNotify();
 
   const start = async () => {
     try {
@@ -239,7 +241,7 @@ const useVoiceRecorder = (onResult) => {
       setRecording(true);
       timerRef.current = setInterval(() => setDuration(d => d + 1), 1000);
     } catch {
-      alert("Microphone access denied.");
+      notify("Microphone access denied.", "error");
     }
   };
 

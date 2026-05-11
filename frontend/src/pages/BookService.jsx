@@ -3,10 +3,12 @@ import { useLocation, useNavigate, Navigate } from "react-router-dom";
 import SharedLayout, { T } from "../components/layouts/Sharedlayout";
 import { createBooking } from "../handlers/bookingHandlers";
 import { getWalletBalance } from "../handlers/walletHandlers";
+import { useNotify } from "../context/NotificationContext";
 
 const BookService = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
+  const {notify} = useNotify();
 
   if (!state?.service) return <Navigate to="/services" />;
 
@@ -49,12 +51,12 @@ const BookService = () => {
     e.preventDefault();
     
     if (!agreeTerms) {
-      alert("Please agree to the terms and conditions.");
+      notify("Please agree to the terms and conditions.", "error");
       return;
     }
 
     if (selectedPaymentMethod === "wallet" && !hasSufficientBalance) {
-      alert(`Insufficient wallet balance. You need Rs. ${totalAmount.toLocaleString()} but have Rs. ${walletBalance?.toLocaleString()}. Please top up your wallet.`);
+      notify(`Insufficient wallet balance. You need Rs. ${totalAmount.toLocaleString()} but have Rs. ${walletBalance?.toLocaleString()}. Please top up your wallet.`, "error");
       return;
     }
 
@@ -68,14 +70,14 @@ const BookService = () => {
         description: formData.description,
       });
       
-      alert("Payment successful! Booking confirmed.");
+      notify("Payment successful! Booking confirmed.", "success");
       navigate("/my-bookings");
     } catch (err) {
       const errorMsg = err.response?.data?.detail || "";
       if (errorMsg.includes("insufficient") || errorMsg.includes("balance")) {
-        alert("Payment failed: Insufficient wallet balance. Please top up and try again.");
+        notify("Payment failed: Insufficient wallet balance. Please top up and try again.", "error");
       } else {
-        alert("Failed to process payment and create booking. " + errorMsg);
+        notify("Failed to process payment and create booking. " + errorMsg, "error");
       }
     } finally {
       setLoading(false);

@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useInRouterContext, useNavigate } from "react-router-dom";
 import SharedLayout, { T } from "../components/layouts/Sharedlayout";
 import { getCategories } from "../handlers/categoryHandlers";
 import { addProviderService, deleteProviderService, getMyProviderDetails } from "../handlers/providerHandlers";
+import { useNotify } from "../context/NotificationContext";
+
 
 const SectionBar = ({ left, right }) => (
   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 48px", background: T.IK }}>
@@ -18,6 +20,7 @@ const ManageServices = () => {
   const [showForm,    setShowForm]    = useState(false);
   const [loading,     setLoading]     = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
+  const notify = useNotify();
 
   const [formData, setFormData] = useState({ category_id: "", title: "", description: "", price: "" });
 
@@ -54,7 +57,7 @@ const ManageServices = () => {
       setShowForm(false);
       setFormData({ category_id: "", title: "", description: "", price: "" });
     } catch (err) {
-      alert(err.response?.data?.detail || "Failed to add service");
+      notify(err.response?.data?.detail || "Failed to add service", "error");
     } finally {
       setLoading(false);
     }
@@ -66,7 +69,7 @@ const ManageServices = () => {
       await deleteProviderService(serviceId);
       setServices(s => s.filter(sv => sv.id !== serviceId));
     } catch {
-      alert("Failed to delete service.");
+      notify("Failed to delete service.", "error");
     }
   };
 
