@@ -5,7 +5,7 @@ from app.core.config import settings
 from app.core.database import engine, Base
 from app.routers import (
     auth, users, providers, bookings,
-    reviews, chat, categories
+    reviews, chat, categories, wallet,ai
 )
 
 app = FastAPI(
@@ -31,6 +31,8 @@ app.include_router(bookings.router, prefix="/api/bookings", tags=["Bookings"])
 app.include_router(reviews.router, prefix="/api/reviews", tags=["Reviews"])
 app.include_router(chat.router, prefix="/api/chat", tags=["Chat"])
 app.include_router(categories.router, prefix="/api/categories", tags=["Categories"])
+app.include_router(wallet.router, prefix="/api/wallet", tags=["Wallet"])
+app.include_router(ai.router, prefix="/api/ai", tags=["AI"])
 
 @app.get("/health")
 async def health():

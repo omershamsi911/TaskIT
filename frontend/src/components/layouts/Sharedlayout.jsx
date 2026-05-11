@@ -183,6 +183,7 @@ const AvatarDropdown = ({ user, onLogout }) => {
     { label: "My Profile",  path: "/profile" },
     { label: "My Bookings", path: "/my-bookings" },
     { label: "Messages",    path: "/chat" },
+    { label: "Wallet",      path: "/wallet" },
     ...(isProvider ? [{ label: "Provider Dashboard", path: "/provider-dashboard" }] : []),
   ];
 
@@ -322,6 +323,7 @@ export const Navbar = () => {
               <Link to="/profile"   onClick={() => setMobileOpen(false)} style={{ display: "flex", alignItems: "center", padding: "16px 24px", borderBottom: `1px solid ${T.IK}`, textDecoration: "none", fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.IK }}>My Profile</Link>
               <Link to="/my-bookings" onClick={() => setMobileOpen(false)} style={{ display: "flex", alignItems: "center", padding: "16px 24px", borderBottom: `1px solid ${T.IK}`, textDecoration: "none", fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.IK }}>My Bookings</Link>
               <Link to="/chat" onClick={() => setMobileOpen(false)} style={{ display: "flex", alignItems: "center", padding: "16px 24px", borderBottom: `1px solid ${T.IK}`, textDecoration: "none", fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.IK }}>💬 Messages</Link>
+              <Link to="/wallet" onClick={() => setMobileOpen(false)} style={{ display: "flex", alignItems: "center", padding: "16px 24px", borderBottom: `1px solid ${T.IK}`, textDecoration: "none", fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.IK }}>Wallet</Link>
               {(user?.role === "provider" || user?.role === "both") && (
                 <Link to="/provider-dashboard" onClick={() => setMobileOpen(false)} style={{ display: "flex", alignItems: "center", padding: "16px 24px", borderBottom: `1px solid ${T.IK}`, textDecoration: "none", fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.IK }}>Provider Dashboard</Link>
               )}

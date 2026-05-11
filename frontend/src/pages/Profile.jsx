@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import SharedLayout, { T } from "../components/layouts/Sharedlayout";
 import { getMe } from "../handlers/userHandlers";
 import { getMyProviderDetails, updateProviderLocation } from "../handlers/providerHandlers";
+import { getUserReviews } from "../handlers/reviewHandlers";
 
 const SectionBar = ({ left, right }) => (
   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 48px", background: T.IK }}>
@@ -17,9 +18,49 @@ const FieldBlock = ({ label, value }) => (
   </div>
 );
 
+// ─── STAR DISPLAY ─────────────────────────────────────────────────
+const Stars = ({ rating }) => (
+  <div style={{ display: "flex", gap: 2 }}>
+    {[1, 2, 3, 4, 5].map(s => (
+      <span key={s} style={{ fontSize: 13, color: s <= rating ? T.C : "#ddd", lineHeight: 1 }}>★</span>
+    ))}
+  </div>
+);
+
+// ─── REVIEW CARD ──────────────────────────────────────────────────
+const ReviewCard = ({ review }) => (
+  <div style={{ background: "#fff", border: `1px solid ${T.IK}`, padding: 20, display: "flex", flexDirection: "column", gap: 10 }}>
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+      <Stars rating={review.rating} />
+      <span style={{ fontSize: 9, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: T.LIGHT_IK }}>
+        BOOKING #{review.booking_id}
+      </span>
+    </div>
+    {review.comment && (
+      <p style={{ fontSize: 12, color: T.IK, fontFamily: "Georgia, serif", fontStyle: "italic", lineHeight: 1.7, margin: 0, paddingLeft: 12, borderLeft: `3px solid ${T.C}` }}>
+        "{review.comment}"
+      </p>
+    )}
+    {review.is_verified !== undefined && (
+      <span style={{
+        alignSelf: "flex-start",
+        fontSize: 9, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em",
+        padding: "3px 8px",
+        background: review.is_verified ? "rgba(40,199,111,0.1)" : "rgba(234,84,85,0.08)",
+        border: `1px solid ${review.is_verified ? "#28c76f" : "#ea5455"}`,
+        color: review.is_verified ? "#28c76f" : "#ea5455",
+      }}>
+        {review.is_verified ? "✓ AI VERIFIED" : "PENDING VERIFICATION"}
+      </span>
+    )}
+  </div>
+);
+
+// ─── PROFILE ──────────────────────────────────────────────────────
 const Profile = () => {
   const [user,            setUser]            = useState(null);
   const [providerDetails, setProviderDetails] = useState(null);
+  const [reviews,         setReviews]         = useState([]);
   const [loading,         setLoading]         = useState(true);
   const [error,           setError]           = useState(null);
   const [locationLoading, setLocationLoading] = useState(false);
@@ -29,9 +70,14 @@ const Profile = () => {
       try {
         const userData = await getMe();
         setUser(userData);
+
         if (userData.role === "provider" || userData.role === "both") {
-          const provData = await getMyProviderDetails();
+          const [provData, reviewData] = await Promise.all([
+            getMyProviderDetails(),
+            getUserReviews(userData.id),
+          ]);
           setProviderDetails(provData);
+          setReviews(Array.isArray(reviewData) ? reviewData : []);
         }
       } catch (err) {
         setError("Failed to load profile.");
@@ -65,6 +111,11 @@ const Profile = () => {
       () => { alert("Location access denied."); setLocationLoading(false); }
     );
   };
+
+  // Compute average rating
+  const avgRating = reviews.length
+    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
+    : null;
 
   return (
     <SharedLayout>
@@ -100,7 +151,6 @@ const Profile = () => {
                 <span style={{ fontSize: 9, fontWeight: 900, color: "#f5f0e6", opacity: 0.4 }}>§ 001</span>
               </div>
               <div style={{ padding: "32px 28px" }}>
-                {/* Avatar + name */}
                 <div style={{ display: "flex", alignItems: "center", gap: 24, paddingBottom: 24, marginBottom: 24, borderBottom: `1px solid ${T.IK}` }}>
                   <div style={{ width: 72, height: 72, borderRadius: "50%", background: T.IK, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, fontWeight: 900, flexShrink: 0 }}>
                     {user.full_name?.charAt(0)?.toUpperCase() || "U"}
@@ -121,7 +171,7 @@ const Profile = () => {
 
             {/* Provider settings */}
             {(user.role === "provider" || user.role === "both") && providerDetails && (
-              <div style={{ background: "#fff", border: `1px solid ${T.IK}`, overflow: "hidden" }}>
+              <div style={{ background: "#fff", border: `1px solid ${T.IK}`, overflow: "hidden", marginBottom: 24 }}>
                 <div style={{ padding: "12px 24px", background: T.IK, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ fontSize: 10, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.15em", color: T.C }}>PROVIDER SETTINGS</span>
                   <span style={{ fontSize: 9, fontWeight: 900, color: "#f5f0e6", opacity: 0.4 }}>§ 002</span>
@@ -140,6 +190,56 @@ const Profile = () => {
                       </button>
                     )}
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── REVIEWS SECTION (providers only) ── */}
+            {(user.role === "provider" || user.role === "both") && (
+              <div style={{ background: "#fff", border: `1px solid ${T.IK}`, overflow: "hidden" }}>
+                <div style={{ padding: "12px 24px", background: T.IK, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: 10, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.15em", color: T.C }}>MY REVIEWS</span>
+                  <span style={{ fontSize: 9, fontWeight: 900, color: "#f5f0e6", opacity: 0.4 }}>§ 003</span>
+                </div>
+
+                <div style={{ padding: "24px 28px" }}>
+                  {/* Summary bar */}
+                  {reviews.length > 0 && (
+                    <div style={{ display: "flex", alignItems: "center", gap: 24, paddingBottom: 20, marginBottom: 20, borderBottom: `1px solid ${T.IK}`, flexWrap: "wrap" }}>
+                      <div>
+                        <p style={{ fontSize: 10, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.15em", color: T.LIGHT_IK, margin: "0 0 6px" }}>AVERAGE RATING</p>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <span style={{ fontSize: 32, fontWeight: 900, color: T.C, lineHeight: 1 }}>{avgRating}</span>
+                          <div style={{ display: "flex", gap: 3 }}>
+                            {[1,2,3,4,5].map(s => (
+                              <span key={s} style={{ fontSize: 16, color: s <= Math.round(avgRating) ? T.C : "#ddd" }}>★</span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{ width: 1, height: 40, background: T.IK, opacity: 0.15 }} />
+                      <div>
+                        <p style={{ fontSize: 10, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.15em", color: T.LIGHT_IK, margin: "0 0 6px" }}>TOTAL REVIEWS</p>
+                        <span style={{ fontSize: 32, fontWeight: 900, color: T.IK, lineHeight: 1 }}>{reviews.length}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Review list */}
+                  {reviews.length === 0 ? (
+                    <div style={{ textAlign: "center", padding: "40px 0" }}>
+                      <div style={{ fontSize: 36, fontWeight: 900, color: T.IK, opacity: 0.08, marginBottom: 12 }}>◈</div>
+                      <p style={{ fontSize: 11, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.15em", color: T.LIGHT_IK, margin: 0 }}>
+                        NO REVIEWS YET
+                      </p>
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                      {reviews.map((review, idx) => (
+                        <ReviewCard key={review.id || idx} review={review} />
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}

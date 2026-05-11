@@ -30,7 +30,6 @@ const STATUS_COLORS = {
   accepted:  { bg: T.IK,     color: "#fff" },
   completed: { bg: "#28c76f", color: "#fff" },
   cancelled: { bg: "#ea5455", color: "#fff" },
-  rejected:  { bg: "#ea5455", color: "#fff" },
 };
 
 // ─── STAT CARD ────────────────────────────────────────────────────

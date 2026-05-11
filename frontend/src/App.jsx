@@ -8,73 +8,73 @@ import MyBookings        from "./pages/MyBookings";
 import Profile           from "./pages/Profile";
 import ProviderDashboard from "./pages/Providerdashboard";
 import ManageServices    from "./pages/ManageServices";
-import Login from "./pages/Login"
-import Register from "./pages/Register"
-import NotFound from "./pages/Notfound";
-import About from "./pages/About";
-import Privacy from "./pages/Privacy";
-import Howitworks from "./pages/Howitworks";
-import Terms from "./pages/Terms";
-import Contact from "./pages/Contact";
-import Help from "./pages/Help";
-import Pricing from "./pages/Pricing"
-import { Provider } from "react-redux";
-import {store} from "./store/store"
-import ChatPage from "./pages/ChatPage";
+import Login             from "./pages/Login";
+import Register          from "./pages/Register";
+import NotFound          from "./pages/Notfound";
+import About             from "./pages/About";
+import Privacy           from "./pages/Privacy";
+import Howitworks        from "./pages/Howitworks";
+import Terms             from "./pages/Terms";
+import Contact           from "./pages/Contact";
+import Help              from "./pages/Help";
+import Pricing           from "./pages/Pricing";
+import ChatPage          from "./pages/ChatPage";
+import Wallet            from "./pages/Wallet";
+import { Provider }      from "react-redux";
+import { store }         from "./store/store";
 
+// Global support chat widget
+import SupportChat from "./components/AISupport";
 
 // ── Auth guard helpers ────────────────────────────────────────────
-const getUser = () => {
-  try { return JSON.parse(localStorage.getItem("user")); } catch { return null; }
-};
+const getUser     = () => { try { return JSON.parse(localStorage.getItem("user")); } catch { return null; } };
 const isLoggedIn  = () => !!localStorage.getItem("access_token");
 const isProvider  = () => { const u = getUser(); return u?.role === "provider" || u?.role === "both"; };
 
-// Redirect to /login if not authenticated
-const RequireAuth = ({ children }) =>
-  isLoggedIn() ? children : <Navigate to="/login" replace />;
-
-// Redirect to / if not a provider
-const RequireProvider = ({ children }) =>
-  isProvider() ? children : <Navigate to="/" replace />;
+const RequireAuth     = ({ children }) => isLoggedIn() ? children : <Navigate to="/login" replace />;
+const RequireProvider = ({ children }) => isProvider() ? children : <Navigate to="/" replace />;
 
 // ── App ───────────────────────────────────────────────────────────
 const App = () => (
   <BrowserRouter>
-  <Provider store={store}>
-    <Routes>
-      {/* Public */}
-      <Route path="/"        element={<Landing />} />
-      <Route path="/services" element={<FindServices />} />
-      <Route path="/about" element={<About />}/>
-      <Route path="/privacy" element={<Privacy />}/>
-      <Route path="/terms" element={<Terms />}/>
-      <Route path="/contact" element={<Contact />}/>
-      <Route path="/how-it-works" element={<Howitworks />}/>
-      <Route path="/help" element={<Help />} />
-      <Route path="/pricing" element={<Pricing />} />
-      <Route path="/chat"        element={<ChatPage />} />
-      <Route path="/chat/:roomId" element={<ChatPage />} /> 
+    <Provider store={store}>
 
-      {/* Auth routes — replace these with your actual Login/Register components */}
-       <Route path="/login"    element={<Login />} /> 
-       <Route path="/register" element={<Register />} /> 
+      <Routes>
+        {/* Public */}
+        <Route path="/"            element={<Landing />} />
+        <Route path="/services"    element={<FindServices />} />
+        <Route path="/about"       element={<About />} />
+        <Route path="/privacy"     element={<Privacy />} />
+        <Route path="/terms"       element={<Terms />} />
+        <Route path="/contact"     element={<Contact />} />
+        <Route path="/how-it-works" element={<Howitworks />} />
+        <Route path="/help"        element={<Help />} />
+        <Route path="/pricing"     element={<Pricing />} />
+        <Route path="/chat"        element={<ChatPage />} />
+        <Route path="/chat/:roomId" element={<ChatPage />} />
 
-      {/* Customer + Provider (login required) */}
-      <Route path="/book-service" element={<RequireAuth><BookService /></RequireAuth>} />
-      <Route path="/my-bookings"  element={<RequireAuth><MyBookings /></RequireAuth>} />
-      <Route path="/profile"      element={<RequireAuth><Profile /></RequireAuth>} />
+        {/* Auth */}
+        <Route path="/login"    element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
-      {/* Provider only */}
-      <Route path="/provider-dashboard" element={<RequireAuth><RequireProvider><ProviderDashboard /></RequireProvider></RequireAuth>} />
-      <Route path="/manage-services"    element={<RequireAuth><RequireProvider><ManageServices /></RequireProvider></RequireAuth>} />
+        {/* Customer + Provider (login required) */}
+        <Route path="/book-service" element={<RequireAuth><BookService /></RequireAuth>} />
+        <Route path="/my-bookings"  element={<RequireAuth><MyBookings /></RequireAuth>} />
+        <Route path="/profile"      element={<RequireAuth><Profile /></RequireAuth>} />
+        <Route path="/wallet"      element={<RequireAuth><Wallet /></RequireAuth>} />
 
+        {/* Provider only */}
+        <Route path="/provider-dashboard" element={<RequireAuth><RequireProvider><ProviderDashboard /></RequireProvider></RequireAuth>} />
+        <Route path="/manage-services"    element={<RequireAuth><RequireProvider><ManageServices /></RequireProvider></RequireAuth>} />
 
-      {/* Catch-all */}
+        {/* Catch-all */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
 
-      <Route path="*" element={<NotFound />} />
-    </Routes>
-  </Provider>
+      {/* Floating support chat — renders on every page */}
+      <SupportChat />
+
+    </Provider>
   </BrowserRouter>
 );
 

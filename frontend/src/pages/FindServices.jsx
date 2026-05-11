@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import SharedLayout, { T } from "../components/layouts/Sharedlayout";
 import { getAllServices, searchProviders } from "../handlers/providerHandlers";
 import { getCategories } from "../handlers/categoryHandlers";
+import { getUserReviews } from "../handlers/reviewHandlers";
 
 // ─── HELPERS ──────────────────────────────────────────────────────
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -39,63 +40,78 @@ const FindServices = () => {
   const [loading,      setLoading]      = useState(true);
   const [userLocation, setUserLocation] = useState(null);
   const [locationLoading, setLocationLoading] = useState(false);
+  const [reviewsData, setReviewsData] = useState({});
 
   const [filters, setFilters] = useState({ categoryId: "ALL", search: "", sort: "recommended" });
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Load categories + services on mount
   useEffect(() => {
     Promise.all([getAllServices(), getCategories()])
-      .then(([svcs, cats]) => {
+      .then(async ([svcs, cats]) => {
+        // Fetch reviews for all providers
+        const uniqueProviderIds = [...new Set(svcs.map(s => s.provider_id).filter(id => id))];
+        const reviewsMap = {};
+        
+        await Promise.all(
+          uniqueProviderIds.map(async (providerId) => {
+            try {
+              const reviews = await getUserReviews(providerId);
+              const avgRating = reviews.length
+                ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+                : 0;
+              reviewsMap[providerId] = { avgRating, reviewCount: reviews.length };
+            } catch (err) {
+              reviewsMap[providerId] = { avgRating: 0, reviewCount: 0 };
+            }
+          })
+        );
+        
+        setReviewsData(reviewsMap);
         setServices(svcs);
         setCategories(cats);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-
   }, []);
 
-  // Apply filters + sort
-const filteredServices = useMemo(() => {
-  let list = Array.isArray(services) ? [...services] : [];
+  const filteredServices = useMemo(() => {
+    let list = Array.isArray(services) ? [...services] : [];
 
-  if (filters.categoryId !== "ALL") {
-    list = list.filter(
-      s => String(s.category_id) === String(filters.categoryId)
-    );
-  }
+    if (filters.categoryId !== "ALL") {
+      list = list.filter(s => String(s.category_id) === String(filters.categoryId));
+    }
 
-  if (filters.search.trim()) {
-    const q = filters.search.toLowerCase();
+    if (filters.search.trim()) {
+      const q = filters.search.toLowerCase();
+      list = list.filter(s => s.title?.toLowerCase().includes(q) || s.description?.toLowerCase().includes(q));
+    }
 
-    list = list.filter(
-      s =>
-        s.title?.toLowerCase().includes(q) ||
-        s.description?.toLowerCase().includes(q)
-    );
-  }
+    // Apply sorting
+    if (filters.sort === "recommended") {
+      // Sort by average rating (highest first), then by review count
+      list.sort((a, b) => {
+        const aRating = reviewsData[a.provider_id]?.avgRating || 0;
+        const bRating = reviewsData[b.provider_id]?.avgRating || 0;
+        if (bRating !== aRating) return bRating - aRating;
+        // If ratings are equal, sort by review count
+        const aCount = reviewsData[a.provider_id]?.reviewCount || 0;
+        const bCount = reviewsData[b.provider_id]?.reviewCount || 0;
+        return bCount - aCount;
+      });
+    } else if (filters.sort === "priceAsc") {
+      list.sort((a, b) => (a.base_price || a.price) - (b.base_price || b.price));
+    } else if (filters.sort === "priceDesc") {
+      list.sort((a, b) => (b.base_price || b.price) - (a.base_price || a.price));
+    }
 
-  if (filters.sort === "priceAsc") {
-    list.sort(
-      (a, b) => (a.base_price || a.price) - (b.base_price || b.price)
-    );
-  }
+    return list;
+  }, [services, filters, reviewsData]);
 
-  if (filters.sort === "priceDesc") {
-    list.sort(
-      (a, b) => (b.base_price || b.price) - (a.base_price || a.price)
-    );
-  }
-
-  return list;
-}, [services, filters]);
-
-  const totalPages       = Math.ceil(filteredServices.length / ITEMS_PER_PAGE);
+  const totalPages        = Math.ceil(filteredServices.length / ITEMS_PER_PAGE);
   const paginatedServices = filteredServices.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   const handleFilter = (key, value) => { setFilters(f => ({ ...f, [key]: value })); setCurrentPage(1); };
 
-  // Location search
   const handleLocationSearch = () => {
     setLocationLoading(true);
     navigator.geolocation.getCurrentPosition(
@@ -105,7 +121,6 @@ const filteredServices = useMemo(() => {
         try {
           const catId = filters.categoryId !== "ALL" ? filters.categoryId : null;
           const results = await searchProviders(lat, lng, 10, catId);
-          // Flatten provider services with distance
           const withDist = results.flatMap(p =>
             (p.services || []).map(s => ({
               ...s,
@@ -124,7 +139,6 @@ const filteredServices = useMemo(() => {
     );
   };
 
-  // Check if logged in to allow booking
   const handleBookNow = (service) => {
     const token = localStorage.getItem("access_token");
     if (!token) {
@@ -136,12 +150,10 @@ const filteredServices = useMemo(() => {
 
   return (
     <SharedLayout>
-      {/* Page header */}
       <SectionBar left="FIND SERVICES" right={`${filteredServices.length} RESULTS`} />
 
       {/* Filter bar */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: 0, borderBottom: `1px solid ${T.IK}`, background: T.CR }}>
-        {/* Search input */}
         <div style={{ display: "flex", alignItems: "stretch", flex: "1 1 240px", borderRight: `1px solid ${T.IK}` }}>
           <input
             type="text"
@@ -152,7 +164,6 @@ const filteredServices = useMemo(() => {
           />
         </div>
 
-        {/* Category filter */}
         <div style={{ display: "flex", alignItems: "stretch", borderRight: `1px solid ${T.IK}` }}>
           <select
             value={filters.categoryId}
@@ -163,7 +174,6 @@ const filteredServices = useMemo(() => {
           </select>
         </div>
 
-        {/* Sort */}
         <div style={{ display: "flex", alignItems: "stretch" }}>
           {SORT_OPTIONS.map(opt => (
             <button key={opt.key}
@@ -174,7 +184,6 @@ const filteredServices = useMemo(() => {
           ))}
         </div>
 
-        {/* Nearby button */}
         <button
           onClick={handleLocationSearch}
           disabled={locationLoading}
@@ -198,7 +207,7 @@ const filteredServices = useMemo(() => {
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 0, padding: 0 }}>
           {paginatedServices.map((service, idx) => (
-            <ServiceCard key={service.id || idx} service={service} idx={idx} onBook={handleBookNow} />
+            <ServiceCard key={service.id || idx} service={service} idx={idx} onBook={handleBookNow} reviewData={reviewsData[service.provider_id]} />
           ))}
         </div>
       )}
@@ -233,9 +242,29 @@ const filteredServices = useMemo(() => {
   );
 };
 
+// ─── STAR RATING DISPLAY ──────────────────────────────────────────
+const StarRating = ({ avg, count }) => {
+  const filled = Math.round(avg);
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+      <div style={{ display: "flex", gap: 2 }}>
+        {[1, 2, 3, 4, 5].map(s => (
+          <span key={s} style={{ fontSize: 11, color: s <= filled ? T.C : "#ddd", lineHeight: 1 }}>★</span>
+        ))}
+      </div>
+      <span style={{ fontSize: 10, fontWeight: 900, color: T.IK }}>{avg}</span>
+      <span style={{ fontSize: 10, fontWeight: 700, color: T.LIGHT_IK }}>({count})</span>
+    </div>
+  );
+};
+
 // ─── SERVICE CARD ─────────────────────────────────────────────────
-const ServiceCard = ({ service, idx, onBook }) => {
+const ServiceCard = ({ service, idx, onBook, reviewData }) => {
   const [hov, setHov] = useState(false);
+
+  const avgRating = reviewData?.avgRating ? reviewData.avgRating.toFixed(1) : null;
+  const reviewCount = reviewData?.reviewCount || 0;
+
   return (
     <div
       onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
@@ -251,13 +280,27 @@ const ServiceCard = ({ service, idx, onBook }) => {
             </span>
           )}
         </div>
+
         <h3 style={{ fontSize: 14, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.05em", color: T.IK, marginBottom: 8, lineHeight: 1.3 }}>
           {service.title}
         </h3>
+
         <p style={{ fontSize: 11, lineHeight: 1.7, color: T.LIGHT_IK, fontFamily: "Georgia, serif", fontWeight: 400, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
           {service.description || "No description provided."}
         </p>
+
+        {/* ── REVIEW RATING ── */}
+        <div style={{ marginTop: 12, minHeight: 20 }}>
+          {avgRating ? (
+            <StarRating avg={avgRating} count={reviewCount} />
+          ) : (
+            <span style={{ fontSize: 10, fontWeight: 700, color: T.LIGHT_IK, letterSpacing: "0.1em", textTransform: "uppercase" }}>
+              NO REVIEWS YET
+            </span>
+          )}
+        </div>
       </div>
+
       <div style={{ marginTop: 20, paddingTop: 16, borderTop: `1px solid ${T.IK}`, display: "flex", flexDirection: "column", gap: 12 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
           <span style={{ fontSize: 10, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: T.LIGHT_IK }}>Base Price</span>

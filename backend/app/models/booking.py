@@ -9,7 +9,7 @@ class Booking(Base):
     user_id = Column(BigInteger, ForeignKey("users.id"), nullable=False)
     provider_id = Column(BigInteger, ForeignKey("providers.id"), nullable=False)
     service_id = Column(BigInteger, ForeignKey("provider_services.id"), nullable=False)
-    status = Column(Enum("requested", "accepted", "completed", "cancelled"), default="requested")
+    status = Column(Enum("requested", "accepted", "completed", "cancelled", "rejected"), default="requested")
     description = Column(Text)
     scheduled_at = Column(DateTime, nullable=False)
     address = Column(String(255), nullable=False)

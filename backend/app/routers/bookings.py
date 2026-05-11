@@ -46,4 +46,14 @@ async def update_booking_status(
     db: AsyncSession = Depends(get_db)
 ):
     service = BookingService(db)
-    return await service.update_status(booking_id, status, current_user)
+    booking = await service.update_status(booking_id, status, current_user)
+    return {
+        "message": f"Booking {status} successfully",
+        "booking": {
+            "id": booking.id,
+            "status": booking.status,
+            "scheduled_at": booking.scheduled_at,
+            "user_id": booking.user_id,
+            "provider_id": booking.provider_id
+        }
+    }

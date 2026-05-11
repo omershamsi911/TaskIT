@@ -21,61 +21,92 @@ const Register = () => {
     if (error) setError(null);
   };
 
+  const validateForm = () => {
+    const { full_name, email, phone, password } = formData;
+
+    if (!full_name || !email || !phone || !password) {
+      return "All fields are required";
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return "Invalid email format";
+    }
+
+    const phoneRegex = /^03[0-9]{9}$/;
+    if (!phoneRegex.test(phone.replace(/\s/g, ""))) {
+      return "Invalid phone number (must be 03XXXXXXXXX)";
+    }
+
+    if (password.length < 6) {
+      return "Password must be at least 6 characters";
+    }
+
+    return null;
+  };
+
   const onSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  setError(null);
-  setLoading(true);
+    setError(null);
 
-  try {
-    const data = await handleSignup(formData);
-
-    const accessToken =
-      data?.tokens?.access_token ||
-      data?.access_token;
-
-    const refreshToken =
-      data?.tokens?.refresh_token ||
-      data?.refresh_token;
-
-    const userData =
-      data?.user || {
-        full_name: formData.full_name,
-        email: formData.email,
-        phone: formData.phone,
-        role: formData.role,
-      };
-
-    if (accessToken) {
-      localStorage.setItem(
-        "access_token",
-        accessToken
-      );
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      return;
     }
+    
+    setLoading(true);
 
-    if (refreshToken) {
+    try {
+      const data = await handleSignup(formData);
+
+      const accessToken =
+        data?.tokens?.access_token ||
+        data?.access_token;
+
+      const refreshToken =
+        data?.tokens?.refresh_token ||
+        data?.refresh_token;
+
+      const userData =
+        data?.user || {
+          full_name: formData.full_name,
+          email: formData.email,
+          phone: formData.phone,
+          role: formData.role,
+        };
+
+      if (accessToken) {
+        localStorage.setItem(
+          "access_token",
+          accessToken
+        );
+      }
+
+      if (refreshToken) {
+        localStorage.setItem(
+          "refresh_token",
+          refreshToken
+        );
+      }
+
       localStorage.setItem(
-        "refresh_token",
-        refreshToken
+        "user",
+        JSON.stringify(userData)
       );
+
+      navigate("/profile");
+    } catch (err) {
+      setError(
+        err?.message ||
+        err ||
+        "Registration failed"
+      );
+    } finally {
+      setLoading(false);
     }
-
-    localStorage.setItem(
-      "user",
-      JSON.stringify(userData)
-    );
-
-    navigate("/profile");
-  } catch (err) {
-    setError(
-      err?.message ||
-      err ||
-      "Registration failed"
-    );
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const fields = [
     { name: "full_name", label: "FULL NAME",     type: "text",     placeholder: "YOUR FULL NAME" },
