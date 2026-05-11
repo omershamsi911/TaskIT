@@ -24,6 +24,7 @@ import {
   buildWsUrl,
 } from "../handlers/chatHandlers";
 import { useNotify } from "../context/NotificationContext";
+import { Send, Paperclip, Mic, File, Image as ImageIcon, Download, ChevronDown, Menu, X, Loader } from "lucide-react";
 
 // ─── UTILS ────────────────────────────────────────────────────────
 const fmtTime = (iso) =>
@@ -59,63 +60,63 @@ const RoomItem = ({ room, active, onClick }) => {
       onMouseLeave={() => setHov(false)}
       style={{
         width: "100%", display: "flex", alignItems: "center", gap: 12,
-        padding: "14px 20px", border: "none", borderBottom: `1px solid ${T.IK}`,
-        background: active ? T.IK : hov ? "#f0ebe0" : "transparent",
+        padding: "14px 16px", border: "none", borderBottom: `1px solid ${T.IK}20`,
+        background: active ? T.IK + "15" : hov ? T.IK + "08" : "transparent",
         cursor: "pointer", textAlign: "left", fontFamily: "inherit",
-        transition: "background 0.1s",
+        transition: "all 0.15s", borderLeft: active ? `4px solid ${T.C}` : "4px solid transparent",
       }}
     >
       {/* Avatar */}
       <div style={{
-        width: 38, height: 38, borderRadius: "50%", flexShrink: 0,
+        width: 40, height: 40, borderRadius: "50%", flexShrink: 0,
         background: active ? T.C : T.IK,
-        color: "#fff",
+        color: active ? T.CR : "#fff",
         display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: 14, fontWeight: 900, position: "relative",
+        fontSize: 13, fontWeight: 900, position: "relative", transition: "all 0.15s",
       }}>
         {(other?.name || "?").charAt(0).toUpperCase()}
         {/* Online dot */}
         {room.online && (
           <span style={{
-            position: "absolute", bottom: 0, right: 0,
-            width: 10, height: 10, borderRadius: "50%",
-            background: "#28c76f", border: `2px solid ${active ? T.IK : T.CR}`,
+            position: "absolute", bottom: -2, right: -2,
+            width: 12, height: 12, borderRadius: "50%",
+            background: "#28c76f", border: `2.5px solid ${active ? T.IK + "15" : T.CR}`,
           }} />
         )}
       </div>
 
       {/* Info */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 2 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4, gap: 8 }}>
           <span style={{
-            fontSize: 11, fontWeight: 900, textTransform: "uppercase",
+            fontSize: 10, fontWeight: 900, textTransform: "uppercase",
             letterSpacing: "0.08em", color: active ? T.C : T.IK,
             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
           }}>
             {other?.name || "Unknown"}
           </span>
           {last && (
-            <span style={{ fontSize: 9, fontWeight: 700, color: active ? "#bdbdbd" : T.LIGHT_IK, flexShrink: 0, marginLeft: 4 }}>
+            <span style={{ fontSize: 8, fontWeight: 700, color: active ? T.LIGHT_IK : T.LIGHT_IK, flexShrink: 0 }}>
               {fmtTime(last.created_at)}
             </span>
           )}
         </div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
           <span style={{
-            fontSize: 10, color: active ? "#bdbdbd" : T.LIGHT_IK,
+            fontSize: 9, color: active ? T.LIGHT_IK : T.LIGHT_IK,
             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-            maxWidth: 140,
+            flex: 1,
           }}>
             {last ? last.content : "No messages yet"}
           </span>
           {room.unread_count > 0 && (
             <span style={{
-              minWidth: 18, height: 18, borderRadius: 9, background: T.C,
-              color: "#fff", fontSize: 9, fontWeight: 900,
+              minWidth: 20, height: 20, borderRadius: 10, background: T.C,
+              color: "#fff", fontSize: 8, fontWeight: 900,
               display: "flex", alignItems: "center", justifyContent: "center",
-              padding: "0 5px", flexShrink: 0,
+              padding: "0 4px", flexShrink: 0,
             }}>
-              {room.unread_count}
+              {room.unread_count > 99 ? "99+" : room.unread_count}
             </span>
           )}
         </div>
@@ -138,25 +139,28 @@ const Bubble = ({ msg, mine, prevSameSender }) => {
       display: "flex",
       flexDirection: "column",
       alignItems: mine ? "flex-end" : "flex-start",
-      marginBottom: prevSameSender ? 3 : 12,
+      marginBottom: prevSameSender ? 4 : 14,
     }}>
       {!prevSameSender && (
         <span style={{
-          fontSize: 9, fontWeight: 900, textTransform: "uppercase",
+          fontSize: 8, fontWeight: 900, textTransform: "uppercase",
           letterSpacing: "0.1em", color: T.LIGHT_IK,
-          marginBottom: 4, marginLeft: mine ? 0 : 4, marginRight: mine ? 4 : 0,
+          marginBottom: 6, marginLeft: mine ? 0 : 2, marginRight: mine ? 2 : 0,
         }}>
           {mine ? "You" : msg.sender_name || "Provider"}
         </span>
       )}
       <div style={{
-        maxWidth: "70%",
+        maxWidth: "75%",
         background: mine ? T.IK : "#fff",
         color: mine ? T.CR : T.IK,
         border: mine ? "none" : `1px solid ${T.IK}`,
-        padding: isImage ? 4 : "10px 14px",
+        padding: isImage ? 6 : "11px 15px",
         position: "relative",
         wordBreak: "break-word",
+        borderRadius: mine ? "2px 8px 8px 2px" : "8px 2px 8px 2px",
+        boxShadow: mine ? "0 2px 4px rgba(0,0,0,0.05)" : "0 1px 3px rgba(0,0,0,0.08)",
+        transition: "all 0.2s",
       }}>
         {isText && (
           <p style={{ margin: 0, fontSize: 12, lineHeight: 1.6, fontFamily: "Georgia, serif", fontWeight: 400 }}>
@@ -173,8 +177,8 @@ const Bubble = ({ msg, mine, prevSameSender }) => {
         )}
         {isVoice && (
           <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 200 }}>
-            <span style={{ fontSize: 18 }}>🎙</span>
-            <audio controls src={content} style={{ flex: 1, height: 32 }} />
+            <Mic size={16} style={{ color: "inherit", flexShrink: 0 }} />
+            <audio controls src={content} style={{ flex: 1, height: 28, borderRadius: 2 }} />
           </div>
         )}
         {isFile && (
@@ -183,10 +187,10 @@ const Bubble = ({ msg, mine, prevSameSender }) => {
             download={msg.filename || "attachment"}
             target="_blank"
             rel="noopener noreferrer"
-            style={{ display: "flex", alignItems: "center", gap: 8, color: "inherit", textDecoration: "none" }}
+            style={{ display: "flex", alignItems: "center", gap: 8, color: "inherit", textDecoration: "none", padding: "4px 0" }}
           >
-            <span style={{ fontSize: 20 }}>📎</span>
-            <span style={{ fontSize: 11, fontWeight: 700, textDecoration: "underline" }}>
+            <Download size={16} style={{ color: "inherit", flexShrink: 0 }} />
+            <span style={{ fontSize: 10, fontWeight: 700, textDecoration: "underline", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 180 }}>
               {msg.filename || "Download file"}
             </span>
           </a>
@@ -379,73 +383,77 @@ const ChatWindow = ({ room, currentUser }) => {
     <div style={{ flex: 1, display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}>
       {/* Chat header */}
       <div style={{
-        padding: "0 28px", height: 56, display: "flex", alignItems: "center",
+        padding: "0 20px", height: 60, display: "flex", alignItems: "center",
         justifyContent: "space-between", borderBottom: `1px solid ${T.IK}`,
         background: T.CR, flexShrink: 0,
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <div style={{
-            width: 36, height: 36, borderRadius: "50%", background: T.IK,
+            width: 40, height: 40, borderRadius: "50%", background: T.IK,
             color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
             fontSize: 14, fontWeight: 900, position: "relative",
           }}>
             {(other?.name || "?").charAt(0).toUpperCase()}
             {otherOnline && (
               <span style={{
-                position: "absolute", bottom: 0, right: 0,
-                width: 10, height: 10, borderRadius: "50%",
-                background: "#28c76f", border: `2px solid ${T.CR}`,
+                position: "absolute", bottom: -2, right: -2,
+                width: 12, height: 12, borderRadius: "50%",
+                background: "#28c76f", border: `2.5px solid ${T.CR}`,
               }} />
             )}
           </div>
           <div>
-            <div style={{ fontSize: 11, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.1em", color: T.IK }}>
+            <div style={{ fontSize: 11, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.08em", color: T.IK }}>
               {other?.name || "User"}
             </div>
-            <div style={{ fontSize: 9, fontWeight: 700, color: otherOnline ? "#28c76f" : T.LIGHT_IK, textTransform: "uppercase", letterSpacing: "0.1em" }}>
-              {otherOnline ? "● Online" : "○ Offline"}
+            <div style={{ fontSize: 8, fontWeight: 700, color: otherOnline ? "#28c76f" : T.LIGHT_IK, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+              {otherOnline ? "● ONLINE" : "○ OFFLINE"}
             </div>
           </div>
         </div>
-        <span style={{ fontSize: 9, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: T.LIGHT_IK }}>
+        <span style={{ fontSize: 8, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.1em", color: T.LIGHT_IK, padding: "4px 12px", background: T.IK + "15", borderRadius: 2 }}>
           BOOKING #{room.booking_id}
         </span>
       </div>
 
       {/* Messages area */}
       <div style={{
-        flex: 1, overflowY: "auto", padding: "20px 28px",
+        flex: 1, overflowY: "auto", padding: "20px 20px",
         display: "flex", flexDirection: "column",
         background: T.CR_ALT,
       }}>
         {/* Load older */}
         {hasMore && !loadingHist && (
-          <div style={{ textAlign: "center", marginBottom: 16 }}>
+          <div style={{ textAlign: "center", marginBottom: 20 }}>
             <button onClick={loadOlder}
-              style={{ fontSize: 9, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", background: "transparent", border: `1px solid ${T.IK}`, color: T.IK, padding: "6px 16px", cursor: "pointer" }}>
-              ↑ Load older messages
+              style={{ fontSize: 8, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", background: "transparent", border: `1px solid ${T.IK}`, color: T.IK, padding: "8px 16px", cursor: "pointer", borderRadius: 2, transition: "all 0.1s" }}
+              onMouseEnter={e => { e.currentTarget.style.background = T.IK; e.currentTarget.style.color = T.CR; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = T.IK; }}>
+              ↑ LOAD OLDER
             </button>
           </div>
         )}
 
         {loadingHist ? (
-          <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <span style={{ fontSize: 24, fontWeight: 900, color: T.C, animation: "spin 1s linear infinite" }}>◎</span>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12 }}>
+            <Loader size={32} style={{ color: T.C, animation: "spin 1s linear infinite" }} />
+            <span style={{ fontSize: 10, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.1em", color: T.LIGHT_IK }}>LOADING MESSAGES...</span>
             <style>{`@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}`}</style>
           </div>
         ) : grouped.length === 0 ? (
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", opacity: 0.5 }}>
-            <div style={{ fontSize: 40 }}>💬</div>
-            <p style={{ fontSize: 10, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.15em", color: T.LIGHT_IK, marginTop: 12 }}>Start the conversation</p>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", opacity: 0.6, gap: 12 }}>
+            <div style={{ fontSize: 48, opacity: 0.3 }}>💬</div>
+            <p style={{ fontSize: 11, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: T.LIGHT_IK, margin: 0 }}>Start the conversation</p>
+            <p style={{ fontSize: 9, color: T.LIGHT_IK, margin: 0 }}>Send a message to begin</p>
           </div>
         ) : (
           grouped.map((item, i) => {
             if (item.type === "divider") {
               return (
-                <div key={`div-${i}`} style={{ display: "flex", alignItems: "center", gap: 12, margin: "16px 0" }}>
-                  <div style={{ flex: 1, height: 1, background: T.IK, opacity: 0.15 }} />
-                  <span style={{ fontSize: 9, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.15em", color: T.LIGHT_IK }}>{item.label}</span>
-                  <div style={{ flex: 1, height: 1, background: T.IK, opacity: 0.15 }} />
+                <div key={`div-${i}`} style={{ display: "flex", alignItems: "center", gap: 12, margin: "20px 0", width: "100%" }}>
+                  <div style={{ flex: 1, height: 1, background: T.IK, opacity: 0.1 }} />
+                  <span style={{ fontSize: 8, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: T.LIGHT_IK, whiteSpace: "nowrap" }}>{item.label}</span>
+                  <div style={{ flex: 1, height: 1, background: T.IK, opacity: 0.1 }} />
                 </div>
               );
             }
@@ -464,23 +472,27 @@ const ChatWindow = ({ room, currentUser }) => {
       {/* Voice recording bar */}
       {voiceRecorder.recording && (
         <div style={{
-          padding: "12px 28px", background: "#fff", borderTop: `1px solid ${T.IK}`,
-          display: "flex", alignItems: "center", gap: 16,
+          padding: "14px 20px", background: "#ea5455", borderTop: `2px solid #d13c3e`,
+          display: "flex", alignItems: "center", gap: 14,
         }}>
-          <span style={{ fontSize: 10, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: "#ea5455" }}>
-            ● RECORDING — {voiceRecorder.duration}s
+          <Mic size={16} style={{ color: "#fff", animation: "pulse 1s infinite", flexShrink: 0 }} />
+          <span style={{ fontSize: 10, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: "#fff", flex: 1 }}>
+            RECORDING — {voiceRecorder.duration}s
           </span>
           <button onClick={voiceRecorder.stop}
-            style={{ padding: "8px 20px", fontSize: 10, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", background: "#ea5455", color: "#fff", border: "none", cursor: "pointer" }}>
-            Stop & Send
+            style={{ padding: "8px 18px", fontSize: 9, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.1em", background: "#fff", color: "#ea5455", border: "none", cursor: "pointer", borderRadius: 2, transition: "all 0.1s", flexShrink: 0 }}
+            onMouseEnter={e => { e.currentTarget.style.opacity = "0.9"; }}
+            onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}>
+            SEND
           </button>
+          <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }`}</style>
         </div>
       )}
 
       {/* Input bar */}
       <div style={{
-        display: "flex", alignItems: "stretch", borderTop: `1px solid ${T.IK}`,
-        background: "#fff", flexShrink: 0,
+        display: "flex", alignItems: "flex-end", borderTop: `1px solid ${T.IK}`,
+        background: "#fff", flexShrink: 0, gap: 0, minHeight: 56,
       }}>
         {/* File button */}
         <input type="file" ref={fileRef} onChange={handleFileChange} style={{ display: "none" }} accept="image/*,.pdf,.doc,.docx,.txt,.zip" />
@@ -489,14 +501,14 @@ const ChatWindow = ({ room, currentUser }) => {
           disabled={sending}
           title="Attach file or image"
           style={{
-            padding: "0 18px", border: "none", borderRight: `1px solid ${T.IK}`,
-            background: "transparent", cursor: "pointer", fontSize: 18, color: T.IK,
-            transition: "background 0.1s", flexShrink: 0,
+            padding: "0 14px", border: "none", borderRight: `1px solid ${T.IK}`,
+            background: "transparent", cursor: "pointer", color: T.IK,
+            transition: "all 0.1s", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", minHeight: 56,
           }}
-          onMouseEnter={e => e.currentTarget.style.background = "#f0ebe0"}
-          onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+          onMouseEnter={e => { e.currentTarget.style.background = T.IK + "10"; }}
+          onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
         >
-          📎
+          <Paperclip size={18} />
         </button>
 
         {/* Voice button */}
@@ -504,14 +516,14 @@ const ChatWindow = ({ room, currentUser }) => {
           onClick={voiceRecorder.recording ? voiceRecorder.stop : voiceRecorder.start}
           title={voiceRecorder.recording ? "Stop recording" : "Record voice message"}
           style={{
-            padding: "0 18px", border: "none", borderRight: `1px solid ${T.IK}`,
+            padding: "0 14px", border: "none", borderRight: `1px solid ${T.IK}`,
             background: voiceRecorder.recording ? "#ea5455" : "transparent",
-            cursor: "pointer", fontSize: 18,
+            cursor: "pointer",
             color: voiceRecorder.recording ? "#fff" : T.IK,
-            transition: "all 0.1s", flexShrink: 0,
+            transition: "all 0.1s", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", minHeight: 56,
           }}
         >
-          🎙
+          <Mic size={18} />
         </button>
 
         {/* Text input */}
@@ -519,13 +531,13 @@ const ChatWindow = ({ room, currentUser }) => {
           value={text}
           onChange={e => setText(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="TYPE YOUR MESSAGE… (Enter to send)"
+          placeholder="Type a message… (Enter to send)"
           rows={1}
           style={{
             flex: 1, resize: "none", border: "none", outline: "none",
-            padding: "16px 20px", fontSize: 11, fontWeight: 700,
-            letterSpacing: "0.05em", background: "transparent",
-            color: T.IK, fontFamily: "inherit", lineHeight: 1.5,
+            padding: "14px 16px", fontSize: 10, fontWeight: 500,
+            letterSpacing: "0.04em", background: "transparent",
+            color: T.IK, fontFamily: "inherit", lineHeight: 1.5, minHeight: 56,
           }}
         />
 
@@ -534,17 +546,19 @@ const ChatWindow = ({ room, currentUser }) => {
           onClick={handleSendText}
           disabled={!text.trim()}
           style={{
-            padding: "0 28px", border: "none", borderLeft: `1px solid ${T.IK}`,
+            padding: "0 16px", border: "none", borderLeft: `1px solid ${T.IK}`,
             background: text.trim() ? T.C : "transparent",
             color: text.trim() ? "#fff" : T.LIGHT_IK,
             cursor: text.trim() ? "pointer" : "default",
             fontSize: 10, fontWeight: 900, textTransform: "uppercase",
-            letterSpacing: "0.12em", transition: "all 0.1s", flexShrink: 0,
+            letterSpacing: "0.1em", transition: "all 0.15s", flexShrink: 0,
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 6, minHeight: 56,
           }}
           onMouseEnter={e => { if (text.trim()) e.currentTarget.style.background = T.IK; }}
           onMouseLeave={e => { if (text.trim()) e.currentTarget.style.background = T.C; }}
         >
-          SEND →
+          <span style={{ display: "inline" }}>SEND</span>
+          <Send size={14} />
         </button>
       </div>
     </div>
@@ -599,28 +613,31 @@ const ChatPage = () => {
 
   const totalUnread = rooms.reduce((acc, r) => acc + (r.unread_count || 0), 0);
 
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
   return (
     <SharedLayout>
       {/* Page header */}
       <div style={{
         display: "flex", justifyContent: "space-between", alignItems: "center",
-        padding: "12px 48px", background: T.IK, borderBottom: `1px solid ${T.IK}`,
+        padding: "16px 20px", background: T.IK, borderBottom: `1px solid ${T.IK}`,
       }}>
-        <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.C }}>MESSAGES</span>
-        <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.CR }}>
+        <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.C }}>MESSAGES</span>
+        <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase", color: T.CR, padding: "4px 12px", background: T.C, color: T.CR, borderRadius: 2 }}>
           {totalUnread > 0 ? `${totalUnread} UNREAD` : "ALL CAUGHT UP"}
         </span>
       </div>
 
       {/* Main layout */}
       <div style={{
-        display: "flex", height: "calc(100vh - 160px)",  // adjust for navbar + ticker + header
+        display: "flex", height: "calc(100vh - 170px)",
         borderBottom: `1px solid ${T.IK}`,
+        "@media (max-width: 768px)": { height: "calc(100vh - 130px)" },
       }}>
         {/* ── Sidebar ─────────────────────────── */}
         <div style={{
-          width: 300, flexShrink: 0, borderRight: `1px solid ${T.IK}`,
-          overflowY: "auto", background: T.CR,
+          width: sidebarOpen ? 320 : 0, flexShrink: 0, borderRight: `1px solid ${T.IK}`,
+          overflowY: "auto", background: T.CR, transition: "width 0.3s", overflow: "hidden",
         }}>
           {/* Sidebar header */}
           <div style={{
@@ -673,22 +690,26 @@ const ChatPage = () => {
           <div style={{
             flex: 1, display: "flex", flexDirection: "column",
             alignItems: "center", justifyContent: "center",
-            background: T.CR_ALT, gap: 12,
+            background: T.CR_ALT, gap: 14, padding: "20px",
           }}>
-            <div style={{ fontSize: 64, opacity: 0.15 }}>◈</div>
-            <p style={{ fontSize: 11, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.15em", color: T.LIGHT_IK }}>
-              Select a conversation
-            </p>
-            <p style={{ fontSize: 10, color: T.LIGHT_IK }}>
-              Or open a booking to start chatting with a provider
-            </p>
+            <div style={{ fontSize: 60, opacity: 0.2 }}>💬</div>
+            <div style={{ textAlign: "center", maxWidth: 320 }}>
+              <p style={{ fontSize: 12, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.1em", color: T.IK, margin: "0 0 8px" }}>
+                SELECT A CONVERSATION
+              </p>
+              <p style={{ fontSize: 10, color: T.LIGHT_IK, margin: 0, lineHeight: 1.6 }}>
+                Open a booking to start messaging with a provider
+              </p>
+            </div>
             <Link to="/my-bookings"
               style={{
-                marginTop: 8, padding: "12px 28px", fontSize: 10, fontWeight: 900,
+                marginTop: 8, padding: "12px 24px", fontSize: 10, fontWeight: 900,
                 textTransform: "uppercase", letterSpacing: "0.12em",
-                background: T.C, color: "#fff", textDecoration: "none",
-              }}>
-              VIEW MY BOOKINGS →
+                background: T.C, color: "#fff", textDecoration: "none", borderRadius: 2, transition: "all 0.1s",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.opacity = "0.9"; }}
+              onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}>
+              VIEW MY BOOKINGS
             </Link>
           </div>
         )}
