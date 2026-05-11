@@ -16,3 +16,6 @@ geopy
 numpy
 scikit-learn
 python-dateutil
+google-auth
+requests
+google-auth-oauthlib
