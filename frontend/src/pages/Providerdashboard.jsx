@@ -17,6 +17,7 @@ import { getMe } from "../handlers/userHandlers";
 import { getMyProviderDetails } from "../handlers/providerHandlers";
 import { getMyBookings, updateBookingStatus } from "../handlers/bookingHandlers";
 import { getOrCreateRoom } from "../handlers/chatHandlers";
+import { useNotify } from "../context/NotificationContext";
 
 const SectionBar = ({ left, right }) => (
   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 48px", background: T.IK }}>
@@ -124,6 +125,7 @@ const ProviderDashboard = () => {
   const [providerDetails, setProviderDetails] = useState(null);
   const [bookings,        setBookings]        = useState([]);
   const [loading,         setLoading]         = useState(true);
+  const notify = useNotify();
 
   // Guard: redirect non-providers
   useEffect(() => {
@@ -152,7 +154,7 @@ const ProviderDashboard = () => {
       await updateBookingStatus(bookingId, newStatus);
       refreshBookings();
     } catch {
-      alert("Failed to update status.");
+      notify("Failed to update status.", "error");
     }
   };
 
@@ -161,7 +163,7 @@ const ProviderDashboard = () => {
       const room = await getOrCreateRoom(bookingId);
       navigate(`/chat/${room.id}`);
     } catch (err) {
-      alert("Could not open chat. " + (err.response?.data?.detail || ""));
+      notify("Could not open chat. " + (err.response?.data?.detail || ""), "error");
     }
   };
 

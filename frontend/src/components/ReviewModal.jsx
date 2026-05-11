@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { submitReview } from "../handlers/reviewHandlers"; // Assumes you made this handler
+import { useNotify } from "../context/NotificationContext"
 
 const T = { C: "#FF5733", CR: "#F5F0E6", IK: "#1A1A1A", LIGHT_IK: "#6B6B6B" };
 
@@ -7,6 +8,7 @@ const ReviewModal = ({ booking, onClose }) => {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const notify = useNotify();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,12 +25,12 @@ const ReviewModal = ({ booking, onClose }) => {
 
       // Simulate AI analysis delay for UX effect
       setTimeout(() => {
-        alert("Review submitted & analyzed successfully!");
+        notify("Review submitted & analyzed successfully!");
         onClose();
       }, 1500);
       
     } catch (err) {
-      alert("Failed to submit review");
+      notify("Failed to submit review", "error");
       setIsProcessing(false);
     }
   };

@@ -5,6 +5,7 @@ import {
   getWalletTransactions,
   topUpWallet,
 } from "../handlers/walletHandlers";
+import { useNotify } from "../context/NotificationContext";
 
 const TOPUP_PRESETS = [500, 1000, 2000, 5000];
 
@@ -26,6 +27,7 @@ const WalletPage = () => {
   const [cardName, setCardName] = useState("");
   const [expiry, setExpiry] = useState("");
   const [cvv, setCvv] = useState("");
+  const notify = useNotify();
 
   const fetchAll = async () => {
     try {
@@ -51,11 +53,11 @@ const WalletPage = () => {
     const parsed = parseFloat(amount);
 
     if (!parsed || parsed <= 0) {
-      return alert("Enter a valid amount.");
+      return notify("Enter a valid amount.", "error");
     }
 
     if (parsed > 50000) {
-      return alert("Maximum top-up is Rs. 50,000.");
+      return notify("Maximum top-up is Rs. 50,000.", "error");
     }
 
     setTopping(true);
@@ -73,7 +75,7 @@ const WalletPage = () => {
 
       await fetchAll();
     } catch (err) {
-      alert("Top-up failed. " + (err.response?.data?.detail || ""));
+      notify("Top-up failed. " + (err.response?.data?.detail || ""), "error");
     } finally {
       setTopping(false);
     }

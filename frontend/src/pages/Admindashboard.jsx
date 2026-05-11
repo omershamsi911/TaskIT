@@ -23,6 +23,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api";
+import { useNotify } from "../context/NotificationContext";
 
 // ─── Design tokens (match rest of app) ───────────────────────────
 const T = {
@@ -208,6 +209,7 @@ const BookingsView = () => {
   const [bookings, setBookings] = useState([]);
   const [loading,  setLoading]  = useState(true);
   const [page,     setPage]     = useState(0);
+  const notify = useNotify();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -222,7 +224,7 @@ const BookingsView = () => {
     try {
       await adminApi.updateBookingStatus(id, status);
       load();
-    } catch(e) { alert("Failed: " + (e.response?.data?.detail || e.message)); }
+    } catch(e) { notify("Failed: " + (e.response?.data?.detail || e.message), "error"); }
   };
 
   if (loading) return <Loader />;
@@ -450,17 +452,17 @@ const DisputeThread = ({ dispute, onClose, onResolve }) => {
       await adminApi.sendAdminMsg(dispute.id, text.trim());
       setText("");
       await loadMsgs();
-    } catch(e) { alert("Send failed: " + (e.response?.data?.detail || e.message)); }
+    } catch(e) { notify("Send failed: " + (e.response?.data?.detail || e.message), "error"); }
     finally { setSending(false); }
   };
 
   const resolve = async () => {
-    if (!resText.trim()) { alert("Please enter a resolution note."); return; }
+    if (!resText.trim()) { notify("Please enter a resolution note.", "error"); return; }
     setResolving(true);
     try {
       await adminApi.resolveDispute(dispute.id, resText.trim());
       onResolve();
-    } catch(e) { alert("Resolve failed: " + (e.response?.data?.detail || e.message)); }
+    } catch(e) { notify("Resolve failed: " + (e.response?.data?.detail || e.message), "error"); }
     finally { setResolving(false); }
   };
 

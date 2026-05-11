@@ -23,6 +23,7 @@ import Wallet            from "./pages/Wallet";
 import { Provider }      from "react-redux";
 import { store }         from "./store/store";
 import AdminDashboard from "./pages/Admindashboard";
+import { NotificationProvider } from "./context/NotificationContext";
 
 // Global support chat widget
 import SupportChat from "./components/AISupport";
@@ -37,47 +38,50 @@ const RequireProvider = ({ children }) => isProvider() ? children : <Navigate to
 
 // ── App ───────────────────────────────────────────────────────────
 const App = () => (
-  <BrowserRouter>
-    <Provider store={store}>
+  <NotificationProvider>
 
-      <Routes>
-        {/* Public */}
-        <Route path="/"            element={<Landing />} />
-        <Route path="/services"    element={<FindServices />} />
-        <Route path="/about"       element={<About />} />
-        <Route path="/privacy"     element={<Privacy />} />
-        <Route path="/terms"       element={<Terms />} />
-        <Route path="/contact"     element={<Contact />} />
-        <Route path="/how-it-works" element={<Howitworks />} />
-        <Route path="/help"        element={<Help />} />
-        <Route path="/pricing"     element={<Pricing />} />
-        <Route path="/chat"        element={<ChatPage />} />
-        <Route path="/chat/:roomId" element={<ChatPage />} />
-        <Route path="/admin" element={<AdminDashboard />} />
+    <BrowserRouter>
+      <Provider store={store}>
 
-        {/* Auth */}
-        <Route path="/login"    element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Routes>
+          {/* Public */}
+          <Route path="/"            element={<Landing />} />
+          <Route path="/services"    element={<FindServices />} />
+          <Route path="/about"       element={<About />} />
+          <Route path="/privacy"     element={<Privacy />} />
+          <Route path="/terms"       element={<Terms />} />
+          <Route path="/contact"     element={<Contact />} />
+          <Route path="/how-it-works" element={<Howitworks />} />
+          <Route path="/help"        element={<Help />} />
+          <Route path="/pricing"     element={<Pricing />} />
+          <Route path="/chat"        element={<ChatPage />} />
+          <Route path="/chat/:roomId" element={<ChatPage />} />
+          <Route path="/admin" element={<AdminDashboard />} />
 
-        {/* Customer + Provider (login required) */}
-        <Route path="/book-service" element={<RequireAuth><BookService /></RequireAuth>} />
-        <Route path="/my-bookings"  element={<RequireAuth><MyBookings /></RequireAuth>} />
-        <Route path="/profile"      element={<RequireAuth><Profile /></RequireAuth>} />
-        <Route path="/wallet"      element={<RequireAuth><Wallet /></RequireAuth>} />
+          {/* Auth */}
+          <Route path="/login"    element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
-        {/* Provider only */}
-        <Route path="/provider-dashboard" element={<RequireAuth><RequireProvider><ProviderDashboard /></RequireProvider></RequireAuth>} />
-        <Route path="/manage-services"    element={<RequireAuth><RequireProvider><ManageServices /></RequireProvider></RequireAuth>} />
+          {/* Customer + Provider (login required) */}
+          <Route path="/book-service" element={<RequireAuth><BookService /></RequireAuth>} />
+          <Route path="/my-bookings"  element={<RequireAuth><MyBookings /></RequireAuth>} />
+          <Route path="/profile"      element={<RequireAuth><Profile /></RequireAuth>} />
+          <Route path="/wallet"      element={<RequireAuth><Wallet /></RequireAuth>} />
 
-        {/* Catch-all */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+          {/* Provider only */}
+          <Route path="/provider-dashboard" element={<RequireAuth><RequireProvider><ProviderDashboard /></RequireProvider></RequireAuth>} />
+          <Route path="/manage-services"    element={<RequireAuth><RequireProvider><ManageServices /></RequireProvider></RequireAuth>} />
 
-      {/* Floating support chat — renders on every page */}
-      <SupportChat />
+          {/* Catch-all */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
 
-    </Provider>
-  </BrowserRouter>
+        {/* Floating support chat — renders on every page */}
+        <SupportChat />
+
+      </Provider>
+    </BrowserRouter>
+  </NotificationProvider>
 );
 
 export default App;
