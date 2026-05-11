@@ -26,3 +26,18 @@ export const handlePhoneLogin = async (data) => {
     throw error.response?.data?.detail || "Invalid credentials.";
   }
 };
+
+export const handleGoogleAuth = async (token, role = "customer") => {
+  const response = await fetch("http://localhost:8000/api/auth/login/google", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token, role }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || "Google authentication failed");
+  }
+
+  return response.json();
+};

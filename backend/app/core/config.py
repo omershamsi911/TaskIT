@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     GOOGLE_MAPS_API_KEY: Optional[str] = None
     AI_SERVICE_URL: Optional[str] = None
     GROQ_API_KEY: Optional[str] = None
+    GOOGLE_CLIENT_ID: str
 
     class Config:
         env_file = ".env"
