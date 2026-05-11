@@ -6,6 +6,7 @@ import {
   topUpWallet,
 } from "../handlers/walletHandlers";
 import { useNotify } from "../context/NotificationContext";
+import { Wallet, CreditCard, ArrowUpRight, ArrowDownLeft, Loader, Eye, EyeOff } from "lucide-react";
 
 const TOPUP_PRESETS = [500, 1000, 2000, 5000];
 
@@ -27,6 +28,7 @@ const WalletPage = () => {
   const [cardName, setCardName] = useState("");
   const [expiry, setExpiry] = useState("");
   const [cvv, setCvv] = useState("");
+  const [showBalance, setShowBalance] = useState(true);
   const notify = useNotify();
 
   const fetchAll = async () => {
@@ -117,28 +119,38 @@ const WalletPage = () => {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          padding: "12px 48px",
+          padding: "16px 20px",
           background: T.IK,
+          flexWrap: "wrap",
+          gap: 12,
         }}
       >
-        <span
-          style={{
-            fontSize: 10,
-            fontWeight: 900,
-            letterSpacing: "0.15em",
-            textTransform: "uppercase",
-            color: T.C,
-          }}
-        >
-          MY WALLET
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <Wallet size={20} style={{ color: T.C }} />
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 900,
+              letterSpacing: "0.15em",
+              textTransform: "uppercase",
+              color: T.C,
+            }}
+          >
+            MY WALLET
+          </span>
+        </div>
 
         <span
           style={{
             fontSize: 10,
             fontWeight: 900,
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
             color: T.CR,
-            opacity: 0.4,
+            padding: "4px 12px",
+            background: T.C,
+            color: T.CR,
+            borderRadius: 2,
           }}
         >
           SECURE PAYMENTS
@@ -149,7 +161,7 @@ const WalletPage = () => {
         style={{
           maxWidth: 1100,
           margin: "0 auto",
-          padding: "48px 32px",
+          padding: "32px 20px",
           fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
         }}
       >
@@ -157,40 +169,47 @@ const WalletPage = () => {
           <div
             style={{
               textAlign: "center",
-              padding: "80px 0",
-              fontSize: 12,
-              fontWeight: 900,
-              textTransform: "uppercase",
-              letterSpacing: "0.15em",
-              color: T.LIGHT_IK,
+              padding: "80px 20px",
+              minHeight: "60vh",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 16,
             }}
           >
-            LOADING...
+            <Loader size={40} style={{ color: T.C, animation: "spin 1s linear infinite" }} />
+            <span style={{ fontSize: 11, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.1em", color: T.LIGHT_IK }}>LOADING WALLET...</span>
+            <style>{`@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}`}</style>
           </div>
         ) : (
           <>
             {/* BALANCE */}
             <div
               style={{
-                border: `1px solid ${T.IK}`,
-                marginBottom: 32,
+                border: `1px solid ${T.IK}20`,
+                marginBottom: 28,
                 overflow: "hidden",
-                boxShadow: "0 10px 40px rgba(0,0,0,0.06)",
+                borderRadius: 4,
+                boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
               }}
             >
               <div
                 style={{
-                  padding: "12px 24px",
+                  padding: "14px 20px",
                   background: T.IK,
                   display: "flex",
                   justifyContent: "space-between",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: 12,
                 }}
               >
                 <span
                   style={{
-                    fontSize: 10,
+                    fontSize: 11,
                     fontWeight: 900,
-                    letterSpacing: "0.15em",
+                    letterSpacing: "0.12em",
                     textTransform: "uppercase",
                     color: T.C,
                   }}
@@ -200,10 +219,14 @@ const WalletPage = () => {
 
                 <span
                   style={{
-                    fontSize: 10,
+                    fontSize: 9,
                     fontWeight: 900,
+                    letterSpacing: "0.1em",
+                    textTransform: "uppercase",
                     color: T.CR,
-                    opacity: 0.4,
+                    padding: "4px 12px",
+                    background: T.C + "20",
+                    borderRadius: 2,
                   }}
                 >
                   WALLET
@@ -212,74 +235,112 @@ const WalletPage = () => {
 
               <div
                 style={{
-                  padding: "36px 28px",
+                  padding: "32px 24px",
                   background: T.CR,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
                 }}
               >
-                <div
-                  style={{
-                    fontSize: 48,
-                    fontWeight: 900,
-                    color: T.IK,
-                    lineHeight: 1,
-                  }}
-                >
-                  Rs.{" "}
-                  {Number(balance).toLocaleString("en-PK", {
-                    minimumFractionDigits: 2,
-                  })}
+                <div>
+                  <div
+                    style={{
+                      fontSize: 44,
+                      fontWeight: 900,
+                      color: T.IK,
+                      lineHeight: 1,
+                      marginBottom: 8,
+                    }}
+                  >
+                    {showBalance ? (
+                      <>
+                        Rs.{" "}
+                        {Number(balance).toLocaleString("en-PK", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </>
+                    ) : (
+                      "••••••••"
+                    )}
+                  </div>
+
+                  <div
+                    style={{
+                      fontSize: 9,
+                      fontWeight: 700,
+                      color: T.LIGHT_IK,
+                      letterSpacing: "0.1em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    AVAILABLE BALANCE
+                  </div>
                 </div>
 
-                <div
+                <button
+                  onClick={() => setShowBalance(!showBalance)}
                   style={{
-                    fontSize: 10,
-                    fontWeight: 700,
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
                     color: T.LIGHT_IK,
-                    marginTop: 8,
-                    letterSpacing: "0.1em",
+                    padding: 6,
+                    display: "flex",
+                    alignItems: "center",
                   }}
+                  title={showBalance ? "Hide balance" : "Show balance"}
                 >
-                  AVAILABLE BALANCE
-                </div>
+                  {showBalance ? <Eye size={18} /> : <EyeOff size={18} />}
+                </button>
               </div>
             </div>
 
             {/* TOPUP SECTION */}
             <div
               style={{
-                border: `1px solid ${T.IK}`,
-                marginBottom: 32,
+                border: `1px solid ${T.IK}20`,
+                marginBottom: 28,
                 overflow: "hidden",
-                boxShadow: "0 10px 40px rgba(0,0,0,0.08)",
+                borderRadius: 4,
+                boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
               }}
             >
               <div
                 style={{
-                  padding: "14px 24px",
+                  padding: "14px 20px",
                   background: T.IK,
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: 12,
                 }}
               >
-                <span
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 900,
-                    letterSpacing: "0.15em",
-                    textTransform: "uppercase",
-                    color: T.C,
-                  }}
-                >
-                  ADD FUNDS
-                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <CreditCard size={18} style={{ color: T.C }} />
+                  <span
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 900,
+                      letterSpacing: "0.12em",
+                      textTransform: "uppercase",
+                      color: T.C,
+                    }}
+                  >
+                    ADD FUNDS
+                  </span>
+                </div>
 
                 <span
                   style={{
-                    fontSize: 10,
+                    fontSize: 9,
                     fontWeight: 900,
+                    letterSpacing: "0.1em",
+                    textTransform: "uppercase",
                     color: T.CR,
-                    opacity: 0.5,
+                    padding: "4px 12px",
+                    background: T.C + "20",
+                    borderRadius: 2,
                   }}
                 >
                   VISA / MASTERCARD
@@ -289,10 +350,10 @@ const WalletPage = () => {
               <div
                 style={{
                   background: T.CR,
-                  padding: 28,
+                  padding: "24px",
                   display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: 32,
+                  gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                  gap: 24,
                 }}
               >
                 {/* LEFT */}
@@ -301,10 +362,10 @@ const WalletPage = () => {
 
                   <div
                     style={{
-                      display: "flex",
-                      flexWrap: "wrap",
+                      display: "grid",
+                      gridTemplateColumns: "repeat(2, 1fr)",
                       gap: 10,
-                      marginBottom: 28,
+                      marginBottom: 24,
                     }}
                   >
                     {TOPUP_PRESETS.map((amt) => (
@@ -312,22 +373,25 @@ const WalletPage = () => {
                         key={amt}
                         onClick={() => setTopUpAmount(amt)}
                         style={{
-                          padding: "12px 18px",
+                          padding: "12px 14px",
                           border: `1px solid ${T.IK}20`,
                           background: "#fff",
-                          fontSize: 11,
+                          fontSize: 10,
                           fontWeight: 800,
                           color: T.IK,
                           cursor: "pointer",
-                          transition: "0.2s",
+                          transition: "all 0.15s",
+                          borderRadius: 2,
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.background = T.IK;
                           e.currentTarget.style.color = "#fff";
+                          e.currentTarget.style.transform = "translateY(-2px)";
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.background = "#fff";
                           e.currentTarget.style.color = T.IK;
+                          e.currentTarget.style.transform = "translateY(0)";
                         }}
                       >
                         Rs. {amt.toLocaleString()}
@@ -342,17 +406,19 @@ const WalletPage = () => {
                       display: "flex",
                       alignItems: "center",
                       background: "#fff",
-                      border: `1px solid ${T.IK}15`,
-                      marginBottom: 22,
+                      border: `1px solid ${T.IK}20`,
+                      marginBottom: 20,
+                      borderRadius: 4,
+                      overflow: "hidden",
                     }}
                   >
                     <div
                       style={{
-                        padding: "16px",
+                        padding: "14px 14px",
                         fontWeight: 900,
-                        fontSize: 13,
+                        fontSize: 12,
                         color: T.IK,
-                        borderRight: `1px solid ${T.IK}15`,
+                        borderRight: `1px solid ${T.IK}10`,
                       }}
                     >
                       Rs.
@@ -367,8 +433,8 @@ const WalletPage = () => {
                         flex: 1,
                         border: "none",
                         outline: "none",
-                        padding: "16px",
-                        fontSize: 16,
+                        padding: "14px",
+                        fontSize: 14,
                         fontWeight: 700,
                         background: "transparent",
                       }}
@@ -386,14 +452,18 @@ const WalletPage = () => {
                     }
                     style={{
                       width: "100%",
-                      padding: "16px",
-                      border: `1px solid ${T.IK}15`,
+                      padding: "12px 14px",
+                      border: `1px solid ${T.IK}20`,
                       background: "#fff",
                       outline: "none",
-                      fontSize: 14,
+                      fontSize: 13,
                       fontWeight: 700,
-                      marginBottom: 18,
+                      marginBottom: 16,
+                      borderRadius: 4,
+                      transition: "border-color 0.2s",
                     }}
+                    onFocus={e => e.target.style.borderColor = T.C}
+                    onBlur={e => e.target.style.borderColor = `${T.IK}20`}
                   />
 
                   <label style={labelStyle}>Card Holder</label>
@@ -407,22 +477,26 @@ const WalletPage = () => {
                     }
                     style={{
                       width: "100%",
-                      padding: "16px",
-                      border: `1px solid ${T.IK}15`,
+                      padding: "12px 14px",
+                      border: `1px solid ${T.IK}20`,
                       background: "#fff",
                       outline: "none",
-                      fontSize: 14,
+                      fontSize: 13,
                       fontWeight: 700,
-                      marginBottom: 18,
+                      marginBottom: 16,
+                      borderRadius: 4,
+                      transition: "border-color 0.2s",
                     }}
+                    onFocus={e => e.target.style.borderColor = T.C}
+                    onBlur={e => e.target.style.borderColor = `${T.IK}20`}
                   />
 
                   <div
                     style={{
                       display: "grid",
                       gridTemplateColumns: "1fr 1fr",
-                      gap: 16,
-                      marginBottom: 26,
+                      gap: 12,
+                      marginBottom: 22,
                     }}
                   >
                     <div>
@@ -437,13 +511,17 @@ const WalletPage = () => {
                         }
                         style={{
                           width: "100%",
-                          padding: "16px",
-                          border: `1px solid ${T.IK}15`,
+                          padding: "12px 14px",
+                          border: `1px solid ${T.IK}20`,
                           background: "#fff",
                           outline: "none",
-                          fontSize: 14,
+                          fontSize: 13,
                           fontWeight: 700,
+                          borderRadius: 4,
+                          transition: "border-color 0.2s",
                         }}
+                        onFocus={e => e.target.style.borderColor = T.C}
+                        onBlur={e => e.target.style.borderColor = `${T.IK}20`}
                       />
                     </div>
 
@@ -463,13 +541,17 @@ const WalletPage = () => {
                         }
                         style={{
                           width: "100%",
-                          padding: "16px",
-                          border: `1px solid ${T.IK}15`,
+                          padding: "12px 14px",
+                          border: `1px solid ${T.IK}20`,
                           background: "#fff",
                           outline: "none",
-                          fontSize: 14,
+                          fontSize: 13,
                           fontWeight: 700,
+                          borderRadius: 4,
+                          transition: "border-color 0.2s",
                         }}
+                        onFocus={e => e.target.style.borderColor = T.C}
+                        onBlur={e => e.target.style.borderColor = `${T.IK}20`}
                       />
                     </div>
                   </div>
@@ -486,7 +568,7 @@ const WalletPage = () => {
                     }
                     style={{
                       width: "100%",
-                      padding: "18px",
+                      padding: "14px",
                       border: "none",
                       background:
                         topping ||
@@ -495,17 +577,37 @@ const WalletPage = () => {
                         !cardName ||
                         !expiry ||
                         !cvv
-                          ? "#999"
+                          ? T.LIGHT_IK
                           : T.C,
                       color: "#fff",
                       fontWeight: 900,
-                      fontSize: 12,
-                      letterSpacing: "0.15em",
+                      fontSize: 11,
+                      letterSpacing: "0.1em",
                       textTransform: "uppercase",
-                      cursor: "pointer",
+                      cursor: topping ||
+                        !topUpAmount ||
+                        !cardNumber ||
+                        !cardName ||
+                        !expiry ||
+                        !cvv ? "default" : "pointer",
+                      borderRadius: 4,
+                      transition: "all 0.2s",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
+                      opacity: topping || !topUpAmount || !cardNumber || !cardName || !expiry || !cvv ? 0.6 : 1,
+                    }}
+                    onMouseEnter={e => {
+                      if (!topping && topUpAmount && cardNumber && cardName && expiry && cvv) {
+                        e.currentTarget.style.opacity = "0.9";
+                      }
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.opacity = topping || !topUpAmount || !cardNumber || !cardName || !expiry || !cvv ? "0.6" : "1";
                     }}
                   >
-                    {topping ? "PROCESSING..." : "ADD FUNDS"}
+                    {topping ? <><Loader size={12} style={{ animation: "spin 1s linear infinite" }} /> PROCESSING...</> : "ADD FUNDS"}
                   </button>
                 </div>
 
@@ -515,21 +617,23 @@ const WalletPage = () => {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
+                    minHeight: 320,
                   }}
                 >
                   <div
                     style={{
                       width: "100%",
-                      maxWidth: 420,
+                      maxWidth: 400,
                       height: 240,
-                      borderRadius: 24,
+                      borderRadius: 12,
                       background:
-                        "linear-gradient(135deg, #111 0%, #2b2b2b 45%, #000 100%)",
-                      padding: 28,
+                        "linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #000 100%)",
+                      padding: 24,
                       color: "#fff",
                       position: "relative",
                       overflow: "hidden",
-                      boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+                      boxShadow: "0 24px 48px rgba(0,0,0,0.3), 0 0 1px rgba(255,255,255,0.1) inset",
+                      perspective: "1000px",
                     }}
                   >
                     <div
@@ -637,20 +741,23 @@ const WalletPage = () => {
             </div>
 
             {/* TRANSACTIONS */}
-            <div style={{ border: `1px solid ${T.IK}` }}>
+            <div style={{ border: `1px solid ${T.IK}20`, borderRadius: 4, overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
               <div
                 style={{
-                  padding: "12px 24px",
+                  padding: "14px 20px",
                   background: T.IK,
                   display: "flex",
                   justifyContent: "space-between",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: 12,
                 }}
               >
                 <span
                   style={{
-                    fontSize: 10,
+                    fontSize: 11,
                     fontWeight: 900,
-                    letterSpacing: "0.15em",
+                    letterSpacing: "0.12em",
                     textTransform: "uppercase",
                     color: T.C,
                   }}
@@ -660,10 +767,14 @@ const WalletPage = () => {
 
                 <span
                   style={{
-                    fontSize: 10,
+                    fontSize: 9,
                     fontWeight: 900,
+                    letterSpacing: "0.1em",
+                    textTransform: "uppercase",
                     color: T.CR,
-                    opacity: 0.4,
+                    padding: "4px 12px",
+                    background: T.C + "20",
+                    borderRadius: 2,
                   }}
                 >
                   HISTORY
@@ -678,17 +789,29 @@ const WalletPage = () => {
                     background: T.CR,
                   }}
                 >
+                  <div style={{ fontSize: 48, opacity: 0.15, marginBottom: 12 }}>📊</div>
                   <p
                     style={{
-                      fontSize: 10,
+                      fontSize: 11,
                       fontWeight: 900,
                       textTransform: "uppercase",
-                      letterSpacing: "0.15em",
-                      color: T.LIGHT_IK,
-                      margin: 0,
+                      letterSpacing: "0.1em",
+                      color: T.IK,
+                      margin: "0 0 6px",
                     }}
                   >
                     NO TRANSACTIONS YET
+                  </p>
+                  <p
+                    style={{
+                      fontSize: 9,
+                      color: T.LIGHT_IK,
+                      margin: 0,
+                      fontFamily: "Georgia, serif",
+                      fontWeight: 400,
+                    }}
+                  >
+                    Your transaction history will appear here
                   </p>
                 </div>
               ) : (
@@ -698,6 +821,7 @@ const WalletPage = () => {
                       TXN_COLORS[txn.type] || TXN_COLORS.topup;
 
                     const isDebit = txn.type === "debit";
+                    const IconComp = isDebit ? ArrowDownLeft : ArrowUpRight;
 
                     return (
                       <div
@@ -705,37 +829,40 @@ const WalletPage = () => {
                         style={{
                           display: "flex",
                           alignItems: "center",
-                          gap: 16,
-                          padding: "18px 24px",
+                          gap: 14,
+                          padding: "16px 20px",
                           borderBottom:
                             idx < transactions.length - 1
-                              ? `1px solid ${T.IK}15`
+                              ? `1px solid ${T.IK}10`
                               : "none",
+                          transition: "background 0.2s",
                         }}
+                        onMouseEnter={e => { e.currentTarget.style.background = T.IK + "05"; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
                       >
                         <div
                           style={{
-                            padding: "5px 10px",
-                            fontSize: 8,
-                            fontWeight: 900,
-                            letterSpacing: "0.12em",
-                            textTransform: "uppercase",
-                            background: meta.bg,
-                            color: meta.color,
+                            width: 40,
+                            height: 40,
+                            borderRadius: "50%",
+                            background: meta.bg + "20",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                             flexShrink: 0,
-                            minWidth: 64,
-                            textAlign: "center",
+                            color: meta.bg,
                           }}
                         >
-                          {meta.label}
+                          <IconComp size={16} />
                         </div>
 
-                        <div style={{ flex: 1 }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
                           <div
                             style={{
-                              fontSize: 12,
+                              fontSize: 11,
                               fontWeight: 700,
                               color: T.IK,
+                              marginBottom: 4,
                             }}
                           >
                             {txn.note || "Wallet Transaction"}
@@ -744,33 +871,33 @@ const WalletPage = () => {
                           <div
                             style={{
                               fontSize: 9,
-                              fontWeight: 700,
+                              fontWeight: 600,
                               color: T.LIGHT_IK,
-                              marginTop: 4,
-                              letterSpacing: "0.08em",
+                              letterSpacing: "0.05em",
                             }}
                           >
                             {new Date(txn.created_at).toLocaleString(
                               "en-PK",
                               {
-                                dateStyle: "medium",
+                                dateStyle: "short",
                                 timeStyle: "short",
                               }
                             )}
                           </div>
                         </div>
 
-                        <div style={{ textAlign: "right" }}>
+                        <div style={{ textAlign: "right", flexShrink: 0 }}>
                           <div
                             style={{
-                              fontSize: 15,
+                              fontSize: 13,
                               fontWeight: 900,
                               color: isDebit
                                 ? "#ea5455"
                                 : "#28c76f",
+                              marginBottom: 2,
                             }}
                           >
-                            {isDebit ? "-" : "+"} Rs.{" "}
+                            {isDebit ? "−" : "+"} Rs.{" "}
                             {Number(txn.amount).toLocaleString(
                               "en-PK",
                               {
@@ -781,17 +908,17 @@ const WalletPage = () => {
 
                           <div
                             style={{
-                              fontSize: 9,
-                              fontWeight: 700,
+                              fontSize: 8,
+                              fontWeight: 600,
                               color: T.LIGHT_IK,
-                              marginTop: 2,
+                              letterSpacing: "0.05em",
                             }}
                           >
-                            Bal: Rs.{" "}
+                            Bal:{" "}
                             {Number(
                               txn.balance_after
                             ).toLocaleString("en-PK", {
-                              minimumFractionDigits: 2,
+                              minimumFractionDigits: 0,
                             })}
                           </div>
                         </div>
