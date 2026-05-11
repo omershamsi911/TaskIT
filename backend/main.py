@@ -7,6 +7,7 @@ from app.routers import (
     auth, users, providers, bookings,
     reviews, chat, categories, wallet,ai
 )
+from app.routers import admin as admin_router 
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -33,6 +34,7 @@ app.include_router(chat.router, prefix="/api/chat", tags=["Chat"])
 app.include_router(categories.router, prefix="/api/categories", tags=["Categories"])
 app.include_router(wallet.router, prefix="/api/wallet", tags=["Wallet"])
 app.include_router(ai.router, prefix="/api/ai", tags=["AI"])
+app.include_router(admin_router.router, prefix="/api/admin", tags=["Admin"])
 
 @app.get("/health")
 async def health():

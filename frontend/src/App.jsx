@@ -22,6 +22,7 @@ import ChatPage          from "./pages/ChatPage";
 import Wallet            from "./pages/Wallet";
 import { Provider }      from "react-redux";
 import { store }         from "./store/store";
+import AdminDashboard from "./pages/AdminDashboard";
 
 // Global support chat widget
 import SupportChat from "./components/AISupport";
@@ -52,6 +53,7 @@ const App = () => (
         <Route path="/pricing"     element={<Pricing />} />
         <Route path="/chat"        element={<ChatPage />} />
         <Route path="/chat/:roomId" element={<ChatPage />} />
+        <Route path="/admin" element={<AdminDashboard />} />
 
         {/* Auth */}
         <Route path="/login"    element={<Login />} />

@@ -1,12 +1,16 @@
-
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import SharedLayout from "../components/layouts/Sharedlayout";
 
-import { getMyBookings, updateBookingStatus } from "../handlers/bookingHandlers";
+import {
+  getMyBookings,
+  updateBookingStatus,
+} from "../handlers/bookingHandlers";
+
 import ReviewModal from "../components/ReviewModal";
+import { getOrCreateRoom } from "../handlers/chatHandlers";
+import api from "../api/api";
 
 const T = {
   C: "#FF5733",
@@ -14,7 +18,6 @@ const T = {
   IK: "#1A1A1A",
   LIGHT_IK: "#6B6B6B",
 };
-import { getOrCreateRoom } from "../handlers/chatHandlers";
 
 const STATUS_COLORS = {
   requested: {
@@ -99,11 +102,15 @@ const MyBookings = () => {
 
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+
   const navigate = useNavigate();
 
   // Review modal state
-  const [reviewModalOpen, setReviewModalOpen] = useState(false);
-  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [reviewModalOpen, setReviewModalOpen] =
+    useState(false);
+
+  const [selectedBooking, setSelectedBooking] =
+    useState(null);
 
   const fetchBookings = async () => {
     try {
@@ -120,7 +127,10 @@ const MyBookings = () => {
     fetchBookings();
   }, []);
 
-  const handleStatusUpdate = async (bookingId, newStatus) => {
+  const handleStatusUpdate = async (
+    bookingId,
+    newStatus
+  ) => {
     const confirmed = window.confirm(
       `Confirm mark as "${newStatus.toUpperCase()}"?`
     );
@@ -128,7 +138,11 @@ const MyBookings = () => {
     if (!confirmed) return;
 
     try {
-      await updateBookingStatus(bookingId, newStatus);
+      await updateBookingStatus(
+        bookingId,
+        newStatus
+      );
+
       fetchBookings();
     } catch (err) {
       console.error(err);
@@ -146,7 +160,30 @@ const MyBookings = () => {
       const room = await getOrCreateRoom(bookingId);
       navigate(`/chat/${room.id}`);
     } catch (err) {
-      alert("Could not open chat. " + (err.response?.data?.detail || ""));
+      alert(
+        "Could not open chat. " +
+          (err.response?.data?.detail || "")
+      );
+    }
+  };
+
+  const fileDispute = async (bookingId) => {
+    const reason = prompt("Describe the issue:");
+
+    if (!reason) return;
+
+    try {
+      await api.post("/admin/disputes", {
+        booking_id: bookingId,
+        reason,
+      });
+
+      alert(
+        "Dispute filed. Admin will reach out shortly."
+      );
+    } catch (err) {
+      console.error(err);
+      alert("Failed to file dispute.");
     }
   };
 
@@ -241,9 +278,12 @@ const MyBookings = () => {
                   isCustomer={isCustomer}
                   isProviderView={isProviderView}
                   statusColor={statusColor}
-                  onStatusUpdate={handleStatusUpdate}
+                  onStatusUpdate={
+                    handleStatusUpdate
+                  }
                   onReview={openReview}
                   onOpenChat={handleOpenChat}
+                  onFileDispute={fileDispute}
                 />
               );
             })}
@@ -271,8 +311,10 @@ const BookingCard = ({
   isCustomer,
   isProviderView,
   statusColor,
-  onStatusUpdate, onOpenChat,
+  onStatusUpdate,
+  onOpenChat,
   onReview,
+  onFileDispute,
 }) => {
   const btnBase = {
     width: "100%",
@@ -286,8 +328,10 @@ const BookingCard = ({
     fontFamily: "inherit",
   };
 
-  // Show chat button for active bookings (requested or accepted)
-  const canChat = booking.status === "requested" || booking.status === "accepted";
+  // Show chat button for active bookings
+  const canChat =
+    booking.status === "requested" ||
+    booking.status === "accepted";
 
   return (
     <div
@@ -524,43 +568,81 @@ const BookingCard = ({
               </div>
             )}
 
-          {/* Chat button — shown for active bookings */}
-                {canChat && (
-                  <button onClick={() => onOpenChat(booking.id)}
-                    style={{ ...btnBase, background: "transparent", border: `1px solid ${T.IK}`, color: T.IK, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
-                    onMouseEnter={e => { e.currentTarget.style.background = T.IK; e.currentTarget.style.color = "#fff"; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = T.IK; }}>
-                    💬 Chat
-                  </button>
-                )}
+          {/* Chat button */}
+          {canChat && (
+            <button
+              onClick={() =>
+                onOpenChat(booking.id)
+              }
+              style={{
+                ...btnBase,
+                background: "transparent",
+                border: `1px solid ${T.IK}`,
+                color: T.IK,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background =
+                  T.IK;
 
-          {/* Review Button */}
+                e.currentTarget.style.color =
+                  "#fff";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background =
+                  "transparent";
+
+                e.currentTarget.style.color =
+                  T.IK;
+              }}
+            >
+              💬 Chat
+            </button>
+          )}
+
+          {/* Completed */}
           {isCustomer &&
-            booking.status === "completed" && (
-              <>
-                <div
-                  style={{
-                    textAlign: "center",
-                    fontSize: 10,
-                    fontWeight: 900,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.1em",
-                    color: "#28c76f",
-                  }}
-                >
-                  ✓ COMPLETED
-                </div>
+  (booking.status === "completed" ||
+    booking.status === "accepted") && (
+    <>
+      {booking.status === "completed" && (
+        <div
+          style={{
+            textAlign: "center",
+            fontSize: 10,
+            fontWeight: 900,
+            textTransform: "uppercase",
+            letterSpacing: "0.1em",
+            color: "#28c76f",
+          }}
+        >
+          ✓ COMPLETED
+        </div>
+      )}
 
-                <ActionBtn
-                  text="LEAVE REVIEW"
-                  bg={T.C}
-                  color="#fff"
-                  border={T.C}
-                  hoverBg="#e04b2c"
-                  onClick={() => onReview(booking)}
-                />
-              </>
-            )}
+      <ActionBtn
+        text="LEAVE REVIEW"
+        bg={T.C}
+        color="#fff"
+        border={T.C}
+        hoverBg="#e04b2c"
+        onClick={() => onReview(booking)}
+      />
+
+      <ActionBtn
+        text="REPORT ISSUE"
+        bg="transparent"
+        color="#ea5455"
+        border="#ea5455"
+        hoverBg="#ea5455"
+        hoverColor="#fff"
+        onClick={() => onFileDispute(booking.id)}
+      />
+    </>
+  )}
 
           {/* TERMINAL STATES */}
           {(booking.status === "cancelled" ||
@@ -569,7 +651,6 @@ const BookingCard = ({
               style={{
                 textAlign: "center",
                 fontSize: 10,
-                
                 fontWeight: 900,
                 textTransform: "uppercase",
                 letterSpacing: "0.1em",
@@ -614,10 +695,12 @@ const ActionBtn = ({
     }}
     onMouseEnter={(e) => {
       if (hoverBg)
-        e.currentTarget.style.background = hoverBg;
+        e.currentTarget.style.background =
+          hoverBg;
 
       if (hoverColor)
-        e.currentTarget.style.color = hoverColor;
+        e.currentTarget.style.color =
+          hoverColor;
 
       e.currentTarget.style.opacity = 0.9;
     }}

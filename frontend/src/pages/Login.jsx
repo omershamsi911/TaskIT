@@ -49,7 +49,11 @@ const Login = () => {
       JSON.stringify(userData)
     );
 
-    navigate("/services");
+  if (userData.email === "admin@admin.com") {
+  navigate("/admin");
+} else {
+  navigate("/services");
+}
   } catch (err) {
     setError(
       err?.message ||
