@@ -4,7 +4,7 @@
  * Provides the common Navbar (with role-aware avatar dropdown),
  * the horizontal ticker, GridOverlay, and Footer that wrap every page.
  *
- * UPDATED: Added Chat button with unread badge to the navbar auth area.
+ * UPDATED: Enhanced responsive design with lucide-react icons.
  *
  * Usage:
  *   import SharedLayout from "../layouts/SharedLayout";
@@ -14,6 +14,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getChatRooms } from "../../handlers/chatHandlers";
+import { MessageCircle, Menu, X, ChevronDown, ChevronUp, ArrowRight } from "lucide-react";
 
 // ─── DESIGN TOKENS ────────────────────────────────────────────────
 export const T = {
@@ -30,16 +31,37 @@ export const GLOBAL_CSS = `
   @keyframes pulse   { 0%,100%{opacity:1} 50%{opacity:.3} }
   .tk-ticker  { animation: ticker 28s linear infinite; }
   *{box-sizing:border-box;}
-  @media(max-width:600px){
+  body{margin:0;padding:0;}
+  
+  @media(max-width:640px){
     .tk-desktop{display:none!important;}
+    .tk-desktop-inline{display:none!important;}
     .tk-hamburger{display:flex!important;}
+    .tk-mobile-menu{max-height:100vh;overflow-y:auto;}
   }
-  @media(min-width:601px){
+  @media(min-width:641px){
     .tk-hamburger{display:none!important;}
     .tk-mobile-menu{display:none!important;}
   }
-  @media(max-width:1100px){.tk-footer-wrap{grid-template-columns:1fr 1fr!important;}}
-  @media(max-width:600px){.tk-footer-wrap{grid-template-columns:1fr!important;}}
+  @media(max-width:1024px){
+    .tk-footer-wrap{grid-template-columns:1fr 1fr!important;}
+  }
+  @media(max-width:768px){
+    .tk-footer-wrap{grid-template-columns:1fr!important;}
+    .tk-footer-single{padding:32px 24px!important;}
+  }
+  @media(max-width:640px){
+    .tk-footer-wrap{grid-template-columns:1fr!important;}
+    .tk-footer-single{padding:24px 16px!important;}
+  }
+  
+  @media(max-width:768px){
+    .tk-navbar-logo{font-size:14px!important;}
+  }
+  
+  @media(max-width:640px){
+    .tk-navbar-logo{font-size:12px!important;padding:0 16px!important;}
+  }
 `;
 
 // ─── TICKER ───────────────────────────────────────────────────────
@@ -138,11 +160,11 @@ const ChatNavButton = () => {
         color: hov ? T.CR : T.IK,
         textDecoration: "none", fontSize: 10, fontWeight: 900,
         letterSpacing: "0.15em", textTransform: "uppercase",
-        transition: "all 0.1s", position: "relative",
+        transition: "all 0.1s", position: "relative", minHeight: 56,
       }}
     >
       {/* Chat icon */}
-      <span style={{ fontSize: 16, lineHeight: 1 }}>💬</span>
+      <MessageCircle size={18} strokeWidth={2.5} style={{ lineHeight: 1 }} />
       <span className="tk-desktop">CHAT</span>
       {/* Unread badge */}
       {unread > 0 && (
@@ -192,15 +214,15 @@ const AvatarDropdown = ({ user, onLogout }) => {
       {/* Avatar button */}
       <button
         onClick={() => setOpen(o => !o)}
-        style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 20px", borderLeft: `1px solid ${T.IK}`, background: open ? T.C : "transparent", color: open ? T.CR : T.IK, cursor: "pointer", border: "none", transition: "all 0.1s", fontFamily: "inherit" }}>
+        style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 20px", borderLeft: `1px solid ${T.IK}`, background: open ? T.C : "transparent", color: open ? T.CR : T.IK, cursor: "pointer", border: "none", transition: "all 0.1s", fontFamily: "inherit", minHeight: 56 }}>
         {/* Circle avatar */}
-        <div style={{ width: 30, height: 30, borderRadius: "50%", background: open ? T.CR : T.IK, color: open ? T.IK : T.CR, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 900, flexShrink: 0, transition: "all 0.1s" }}>
+        <div style={{ width: 36, height: 36, borderRadius: "50%", background: open ? T.CR : T.IK, color: open ? T.IK : T.CR, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 900, flexShrink: 0, transition: "all 0.1s" }}>
           {initial}
         </div>
         <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase", display: "none" }} className="tk-desktop-inline">
           {user?.full_name?.split(" ")[0] || "Account"}
         </span>
-        <span style={{ fontSize: 10, fontWeight: 900 }}>{open ? "▲" : "▼"}</span>
+        {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
       </button>
 
       {/* Dropdown */}
@@ -263,10 +285,10 @@ export const Navbar = () => {
   };
 
   return (
-    <header style={{ position: "sticky", top: 0, zIndex: 50, background: T.CR, borderBottom: `1px solid ${T.IK}`, boxShadow: scrolled ? `0 2px 0 ${T.IK}` : "none" }}>
-      <div style={{ display: "flex", alignItems: "stretch", minHeight: 56 }}>
+    <header style={{ position: "sticky", top: 0, zIndex: 50, background: T.CR, borderBottom: `1px solid ${T.IK}`, boxShadow: scrolled ? `0 4px 8px rgba(0,0,0,0.08)` : "none", transition: "box-shadow 0.2s" }}>
+      <div style={{ display: "flex", alignItems: "stretch", minHeight: 56, gap: 0 }}>
         {/* Logo */}
-        <Link to="/" style={{ display: "flex", alignItems: "center", padding: "0 24px", borderRight: `1px solid ${T.IK}`, textDecoration: "none", flexShrink: 0 }}>
+        <Link to="/" style={{ display: "flex", alignItems: "center", padding: "0 24px", borderRight: `1px solid ${T.IK}`, textDecoration: "none", flexShrink: 0 }} className="tk-navbar-logo">
           <span style={{ fontWeight: 900, fontSize: 16, textTransform: "uppercase", letterSpacing: "0.15em", color: T.C }}>TASKIT</span>
         </Link>
 
@@ -303,39 +325,39 @@ export const Navbar = () => {
 
           {/* Hamburger */}
           <button className="tk-hamburger" onClick={() => setMobileOpen(m => !m)}
-            style={{ display: "none", alignItems: "center", justifyContent: "center", padding: "0 20px", borderLeft: `1px solid ${T.IK}`, background: "transparent", cursor: "pointer", color: T.IK, fontSize: 18, fontWeight: 900, border: "none" }}>
-            {mobileOpen ? "✕" : "☰"}
+            style={{ display: "none", alignItems: "center", justifyContent: "center", padding: "0 16px", borderLeft: `1px solid ${T.IK}`, background: "transparent", cursor: "pointer", color: T.IK, border: "none", minHeight: 56, transition: "all 0.2s" }}>
+            {mobileOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
       </div>
 
       {/* Mobile dropdown */}
       {mobileOpen && (
-        <div className="tk-mobile-menu" style={{ borderTop: `1px solid ${T.IK}` }}>
+        <div className="tk-mobile-menu" style={{ borderTop: `1px solid ${T.IK}`, background: T.CR, animation: "slideDown 0.2s ease-out" }}>
           {NAV_LINKS.map(l => (
             <Link key={l.label} to={l.path} onClick={() => setMobileOpen(false)}
-              style={{ display: "flex", alignItems: "center", padding: "16px 24px", borderBottom: `1px solid ${T.IK}`, textDecoration: "none", fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.IK }}>
+              style={{ display: "flex", alignItems: "center", padding: "14px 20px", borderBottom: `1px solid ${T.IK}`, textDecoration: "none", fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.IK, transition: "all 0.1s" }}>
               {l.label}
             </Link>
           ))}
           {token && user ? (
             <>
-              <Link to="/profile"   onClick={() => setMobileOpen(false)} style={{ display: "flex", alignItems: "center", padding: "16px 24px", borderBottom: `1px solid ${T.IK}`, textDecoration: "none", fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.IK }}>My Profile</Link>
-              <Link to="/my-bookings" onClick={() => setMobileOpen(false)} style={{ display: "flex", alignItems: "center", padding: "16px 24px", borderBottom: `1px solid ${T.IK}`, textDecoration: "none", fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.IK }}>My Bookings</Link>
-              <Link to="/chat" onClick={() => setMobileOpen(false)} style={{ display: "flex", alignItems: "center", padding: "16px 24px", borderBottom: `1px solid ${T.IK}`, textDecoration: "none", fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.IK }}>💬 Messages</Link>
-              <Link to="/wallet" onClick={() => setMobileOpen(false)} style={{ display: "flex", alignItems: "center", padding: "16px 24px", borderBottom: `1px solid ${T.IK}`, textDecoration: "none", fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.IK }}>Wallet</Link>
+              <Link to="/profile"   onClick={() => setMobileOpen(false)} style={{ display: "flex", alignItems: "center", padding: "14px 20px", borderBottom: `1px solid ${T.IK}`, textDecoration: "none", fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.IK, transition: "all 0.1s" }}>My Profile</Link>
+              <Link to="/my-bookings" onClick={() => setMobileOpen(false)} style={{ display: "flex", alignItems: "center", padding: "14px 20px", borderBottom: `1px solid ${T.IK}`, textDecoration: "none", fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.IK, transition: "all 0.1s" }}>My Bookings</Link>
+              <Link to="/chat" onClick={() => setMobileOpen(false)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "14px 20px", borderBottom: `1px solid ${T.IK}`, textDecoration: "none", fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.IK, transition: "all 0.1s" }}><MessageCircle size={16} /> Messages</Link>
+              <Link to="/wallet" onClick={() => setMobileOpen(false)} style={{ display: "flex", alignItems: "center", padding: "14px 20px", borderBottom: `1px solid ${T.IK}`, textDecoration: "none", fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.IK, transition: "all 0.1s" }}>Wallet</Link>
               {(user?.role === "provider" || user?.role === "both") && (
-                <Link to="/provider-dashboard" onClick={() => setMobileOpen(false)} style={{ display: "flex", alignItems: "center", padding: "16px 24px", borderBottom: `1px solid ${T.IK}`, textDecoration: "none", fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.IK }}>Provider Dashboard</Link>
+                <Link to="/provider-dashboard" onClick={() => setMobileOpen(false)} style={{ display: "flex", alignItems: "center", padding: "14px 20px", borderBottom: `1px solid ${T.IK}`, textDecoration: "none", fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.IK, transition: "all 0.1s" }}>Provider Dashboard</Link>
               )}
               <button onClick={() => { localStorage.removeItem("access_token"); localStorage.removeItem("user"); window.location.href = "/login"; }}
-                style={{ display: "flex", alignItems: "center", padding: "16px 24px", width: "100%", borderBottom: `1px solid ${T.IK}`, textDecoration: "none", fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: "#ea5455", background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}>
+                style={{ display: "flex", alignItems: "center", padding: "14px 20px", width: "100%", borderBottom: `1px solid ${T.IK}`, textDecoration: "none", fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: "#ea5455", background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", textAlign: "left", transition: "all 0.1s" }}>
                 Logout
               </button>
             </>
           ) : (
             <>
-              <Link to="/login"    onClick={() => setMobileOpen(false)} style={{ display: "flex", alignItems: "center", padding: "16px 24px", borderBottom: `1px solid ${T.IK}`, textDecoration: "none", fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.IK }}>Login</Link>
-              <Link to="/register" onClick={() => setMobileOpen(false)} style={{ display: "flex", alignItems: "center", padding: "16px 24px", borderBottom: `1px solid ${T.IK}`, textDecoration: "none", fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.C }}>Sign Up</Link>
+              <Link to="/login"    onClick={() => setMobileOpen(false)} style={{ display: "flex", alignItems: "center", padding: "14px 20px", borderBottom: `1px solid ${T.IK}`, textDecoration: "none", fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.IK, transition: "all 0.1s" }}>Login</Link>
+              <Link to="/register" onClick={() => setMobileOpen(false)} style={{ display: "flex", alignItems: "center", padding: "14px 20px", borderBottom: `1px solid ${T.IK}`, textDecoration: "none", fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.C, transition: "all 0.1s" }}>Sign Up</Link>
             </>
           )}
         </div>
@@ -380,45 +402,47 @@ export const Footer = () => {
   const [email, setEmail] = useState("");
   const [subH,  setSubH]  = useState(false);
   return (
-    <footer style={{ borderTop: `1px solid ${T.IK}` }}>
+    <footer style={{ borderTop: `1px solid ${T.IK}`, background: T.CR }}>
       <div style={{ display: "grid", gridTemplateColumns: "260px repeat(4,1fr) 260px", borderBottom: `1px solid ${T.IK}` }} className="tk-footer-wrap">
         {/* Brand */}
-        <div style={{ padding: "40px", borderRight: `1px solid ${T.IK}`, borderBottom: `1px solid ${T.IK}` }}>
+        <div className="tk-footer-single" style={{ padding: "40px", borderRight: `1px solid ${T.IK}`, borderBottom: `1px solid ${T.IK}` }}>
           <Link to="/" style={{ textDecoration: "none" }}>
             <div style={{ fontWeight: 900, fontSize: 22, textTransform: "uppercase", letterSpacing: "0.15em", color: T.C, marginBottom: 4 }}>TASKIT</div>
           </Link>
           <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.LIGHT_IK, marginBottom: 24 }}>[PLATFORM]</div>
-          <p style={{ fontSize: 11, lineHeight: 1.7, color: T.LIGHT_IK, fontFamily: "Georgia, serif", fontWeight: 400 }}>Pakistan's home service marketplace. Connecting skilled professionals with people who need them.</p>
-          <div style={{ display: "flex", marginTop: 32, border: `1px solid ${T.IK}` }}>
+          <p style={{ fontSize: 11, lineHeight: 1.7, color: T.LIGHT_IK, fontFamily: "Georgia, serif", fontWeight: 400, margin: 0, marginBottom: 24 }}>Pakistan's home service marketplace. Connecting skilled professionals with people who need them.</p>
+          <div style={{ display: "flex", border: `1px solid ${T.IK}` }}>
             {["TW", "IN", "FB", "YT"].map((s, i) => <SocialBtn key={i} label={s} last={i === 3} />)}
           </div>
         </div>
         {/* Link cols */}
         {FOOTER_COLS.map((col, ci) => (
-          <div key={ci} style={{ padding: "40px 32px", borderRight: `1px solid ${T.IK}`, borderBottom: `1px solid ${T.IK}` }}>
-            <h5 style={{ fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.C, margin: "0 0 24px" }}>{col.heading}</h5>
+          <div key={ci} className="tk-footer-single" style={{ padding: "40px 32px", borderRight: `1px solid ${T.IK}`, borderBottom: `1px solid ${T.IK}` }}>
+            <h5 style={{ fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.C, margin: "0 0 20px", paddingBottom: 12, borderBottom: `1px solid ${T.IK}` }}>{col.heading}</h5>
             <ul style={{ padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 12 }}>
               {col.links.map((l, li) => <FLink key={li} {...l} />)}
             </ul>
           </div>
         ))}
         {/* Newsletter */}
-        <div style={{ padding: "40px 32px", borderBottom: `1px solid ${T.IK}` }}>
-          <h5 style={{ fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.C, margin: "0 0 8px" }}>NEWSLETTER</h5>
-          <p style={{ fontSize: 11, lineHeight: 1.7, color: T.LIGHT_IK, fontFamily: "Georgia, serif", fontWeight: 400, marginBottom: 20 }}>Platform updates, city launches, and new service categories.</p>
+        <div className="tk-footer-single" style={{ padding: "40px 32px", borderBottom: `1px solid ${T.IK}` }}>
+          <h5 style={{ fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.C, margin: "0 0 16px", paddingBottom: 12, borderBottom: `1px solid ${T.IK}` }}>NEWSLETTER</h5>
+          <p style={{ fontSize: 11, lineHeight: 1.6, color: T.LIGHT_IK, fontFamily: "Georgia, serif", fontWeight: 400, marginBottom: 20, margin: 0, marginBottom: 20 }}>Platform updates, city launches, and new service categories.</p>
           <div style={{ display: "flex", border: `1px solid ${T.IK}` }}>
             <input type="email" placeholder="YOUR@EMAIL.COM" value={email} onChange={e => setEmail(e.target.value)}
-              style={{ flex: 1, padding: "12px", fontSize: 10, fontWeight: 900, letterSpacing: "0.1em", textTransform: "uppercase", background: "transparent", border: "none", outline: "none", color: T.IK }} />
+              style={{ flex: 1, padding: "12px", fontSize: 10, fontWeight: 900, letterSpacing: "0.1em", textTransform: "uppercase", background: "transparent", border: "none", outline: "none", color: T.IK, minWidth: 0 }} />
             <button
               onMouseEnter={() => setSubH(true)} onMouseLeave={() => setSubH(false)}
-              style={{ padding: "12px 16px", fontSize: 12, fontWeight: 900, background: subH ? T.IK : T.C, color: T.CR, border: "none", borderLeft: `1px solid ${T.IK}`, cursor: "pointer", transition: "all 0.1s" }}>→</button>
+              style={{ padding: "12px 14px", fontSize: 12, fontWeight: 900, background: subH ? T.IK : T.C, color: T.CR, border: "none", borderLeft: `1px solid ${T.IK}`, cursor: "pointer", transition: "all 0.1s", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <ArrowRight size={14} />
+            </button>
           </div>
         </div>
       </div>
       {/* Bottom strip */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 40px", flexWrap: "wrap", gap: 12 }}>
-        <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: "0.1em", textTransform: "uppercase", color: T.LIGHT_IK }}>© {new Date().getFullYear()} TASKIT PLATFORM — ALL RIGHTS RESERVED</span>
-        <div style={{ display: "flex", gap: 24 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "24px 32px", flexWrap: "wrap", gap: 16, flexDirection: window?.innerWidth <= 640 ? "column" : "row" }}>
+        <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: "0.1em", textTransform: "uppercase", color: T.LIGHT_IK, textAlign: window?.innerWidth <= 640 ? "center" : "left", width: window?.innerWidth <= 640 ? "100%" : "auto" }}>© {new Date().getFullYear()} TASKIT PLATFORM — ALL RIGHTS RESERVED</span>
+        <div style={{ display: "flex", gap: 20 }}>
           {["Privacy", "Terms", "Cookies"].map((l, i) => <FLink key={i} label={l} path={`/${l.toLowerCase()}`} />)}
         </div>
       </div>
@@ -432,19 +456,30 @@ export const GridOverlay = () => (
 );
 
 // ─── SHARED LAYOUT WRAPPER ────────────────────────────────────────
-const SharedLayout = ({ children }) => (
-  <div style={{ position: "relative", minHeight: "100vh", background: T.CR, color: T.IK, fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}>
-    <style>{GLOBAL_CSS}</style>
-    <GridOverlay />
-    <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-      <Ticker />
-      <Navbar />
-      <main style={{ flex: 1 }}>
-        {children}
-      </main>
-      <Footer />
+const SharedLayout = ({ children }) => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  return (
+    <div style={{ position: "relative", minHeight: "100vh", background: T.CR, color: T.IK, fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", overflowX: "hidden" }}>
+      <style>{GLOBAL_CSS}</style>
+      <GridOverlay />
+      <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+        <Ticker />
+        <Navbar />
+        <main style={{ flex: 1, width: "100%" }}>
+          {children}
+        </main>
+        <Footer />
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default SharedLayout;
