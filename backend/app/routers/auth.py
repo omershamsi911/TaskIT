@@ -3,8 +3,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.schemas.auth import PhoneLoginRequest, EmailLoginRequest, TokenResponse, SignupRequest, LoginResponse
 from app.services.auth_service import AuthService
+from app.schemas.auth import GoogleAuthRequest
+import os
 
 router = APIRouter()
+
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 
 @router.post("/signup", response_model=TokenResponse)
 async def signup(data: SignupRequest, db: AsyncSession = Depends(get_db)):
@@ -37,3 +41,8 @@ async def verify_otp(phone: str, otp: str, db: AsyncSession = Depends(get_db)):
 async def refresh_token(refresh_token: str, db: AsyncSession = Depends(get_db)):
     service = AuthService(db)
     return await service.refresh_access_token(refresh_token)
+
+@router.post("/login/google", response_model=LoginResponse)
+async def login_google(data: GoogleAuthRequest, db: AsyncSession = Depends(get_db)):
+    service = AuthService(db)
+    return await service.google_auth(data, GOOGLE_CLIENT_ID)

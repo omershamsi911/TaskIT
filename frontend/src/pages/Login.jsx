@@ -1,10 +1,18 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { handleEmailLogin } from "../handlers/authHandlers";
+import { GoogleLogin } from "@react-oauth/google";
+import {
+  handleEmailLogin,
+  handleGoogleAuth,
+} from "../handlers/authHandlers";
 
 const T = {
-  C: "#FF5733", CR: "#F5F0E6", IK: "#1A1A1A", LIGHT_IK: "#6B6B6B",
-  GREEN: "#28c76f", RED: "#ea5455",
+  C: "#FF5733",
+  CR: "#F5F0E6",
+  IK: "#1A1A1A",
+  LIGHT_IK: "#6B6B6B",
+  GREEN: "#28c76f",
+  RED: "#ea5455",
 };
 
 // Toast notification component
@@ -14,18 +22,39 @@ const Toast = ({ message, type, onClose }) => {
     return () => clearTimeout(timer);
   }, [onClose]);
 
-  const bgColor = type === "success" ? T.GREEN : type === "error" ? T.RED : T.IK;
-  const icon = type === "success" ? (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-      <polyline points="20 6 9 17 4 12" />
-    </svg>
-  ) : type === "error" ? (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-      <circle cx="12" cy="12" r="10" />
-      <line x1="15" y1="9" x2="9" y2="15" />
-      <line x1="9" y1="9" x2="15" y2="15" />
-    </svg>
-  ) : null;
+  const bgColor =
+    type === "success"
+      ? T.GREEN
+      : type === "error"
+      ? T.RED
+      : T.IK;
+
+  const icon =
+    type === "success" ? (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+      >
+        <polyline points="20 6 9 17 4 12" />
+      </svg>
+    ) : type === "error" ? (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <line x1="15" y1="9" x2="9" y2="15" />
+        <line x1="9" y1="9" x2="15" y2="15" />
+      </svg>
+    ) : null;
 
   return (
     <div
@@ -46,9 +75,18 @@ const Toast = ({ message, type, onClose }) => {
       }}
     >
       {icon}
-      <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase" }}>
+
+      <span
+        style={{
+          fontSize: 11,
+          fontWeight: 700,
+          letterSpacing: "0.05em",
+          textTransform: "uppercase",
+        }}
+      >
         {message}
       </span>
+
       <button
         onClick={onClose}
         style={{
@@ -63,7 +101,14 @@ const Toast = ({ message, type, onClose }) => {
           display: "flex",
         }}
       >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
           <line x1="18" y1="6" x2="6" y2="18" />
           <line x1="6" y1="6" x2="18" y2="18" />
         </svg>
@@ -75,20 +120,34 @@ const Toast = ({ message, type, onClose }) => {
 // Custom hook for media queries
 const useMediaQuery = (query) => {
   const [matches, setMatches] = useState(false);
+
   useEffect(() => {
     const media = window.matchMedia(query);
-    if (media.matches !== matches) setMatches(media.matches);
+
+    if (media.matches !== matches) {
+      setMatches(media.matches);
+    }
+
     const listener = () => setMatches(media.matches);
+
     media.addEventListener("change", listener);
+
     return () => media.removeEventListener("change", listener);
   }, [matches, query]);
+
   return matches;
 };
 
 const Login = () => {
   const navigate = useNavigate();
+
   const isMobile = useMediaQuery("(max-width: 640px)");
-  const [formData, setFormData] = useState({ email: "", password: "" });
+
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+
   const [loading, setLoading] = useState(false);
   const [focused, setFocused] = useState(null);
   const [btnHov, setBtnHov] = useState(false);
@@ -100,44 +159,94 @@ const Login = () => {
   };
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const saveAuthData = (data) => {
+    const accessToken =
+      data?.tokens?.access_token || data?.access_token;
+
+    const refreshToken =
+      data?.tokens?.refresh_token || data?.refresh_token;
+
+    const userData = data?.user || data;
+
+    if (accessToken) {
+      localStorage.setItem("access_token", accessToken);
+    }
+
+    if (refreshToken) {
+      localStorage.setItem("refresh_token", refreshToken);
+    }
+
+    localStorage.setItem("user", JSON.stringify(userData));
+
+    return userData;
+  };
+
+  const redirectUser = (userData) => {
+    if (userData?.email === "admin@admin.com") {
+      navigate("/admin");
+    } else {
+      navigate("/services");
+    }
   };
 
   const onSubmit = async (e) => {
     e.preventDefault();
+
     setLoading(true);
 
     try {
       const data = await handleEmailLogin(formData);
 
-      const accessToken = data?.tokens?.access_token || data?.access_token;
-      const refreshToken = data?.tokens?.refresh_token || data?.refresh_token;
-      const userData = data?.user || data;
-
-      if (accessToken) {
-        localStorage.setItem("access_token", accessToken);
-      }
-
-      if (refreshToken) {
-        localStorage.setItem("refresh_token", refreshToken);
-      }
-
-      localStorage.setItem("user", JSON.stringify(userData));
+      const userData = saveAuthData(data);
 
       showToast("Login successful! Redirecting...", "success");
 
       setTimeout(() => {
-        if (userData.email === "admin@admin.com") {
-          navigate("/admin");
-        } else {
-          navigate("/services");
-        }
+        redirectUser(userData);
       }, 1000);
     } catch (err) {
-      showToast(err?.message || err || "Invalid credentials", "error");
+      showToast(
+        err?.message || err || "Invalid credentials",
+        "error"
+      );
     } finally {
       setLoading(false);
     }
+  };
+
+  const onGoogleSuccess = async (credentialResponse) => {
+    try {
+      setLoading(true);
+
+      const data = await handleGoogleAuth(
+        credentialResponse.credential
+      );
+
+      const userData = saveAuthData(data);
+
+      showToast("Google login successful!", "success");
+
+      setTimeout(() => {
+        redirectUser(userData);
+      }, 1000);
+    } catch (err) {
+      showToast(
+        err?.message || err || "Google login failed",
+        "error"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onGoogleError = () => {
+    showToast("Google login failed", "error");
   };
 
   return (
@@ -150,7 +259,8 @@ const Login = () => {
         justifyContent: "center",
         padding: isMobile ? "24px 16px" : 24,
         position: "relative",
-        fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+        fontFamily:
+          "'Helvetica Neue', Helvetica, Arial, sans-serif",
       }}
     >
       {/* Toast notification */}
@@ -190,7 +300,9 @@ const Login = () => {
         {/* Header band */}
         <div
           style={{
-            padding: isMobile ? "20px 24px" : "24px 32px",
+            padding: isMobile
+              ? "20px 24px"
+              : "24px 32px",
             borderBottom: `1px solid ${T.IK}`,
             background: T.IK,
           }}
@@ -208,7 +320,9 @@ const Login = () => {
           >
             LOGIN
             <br />
-            <span style={{ color: T.C }}>TO TASKIT.</span>
+            <span style={{ color: T.C }}>
+              TO TASKIT.
+            </span>
           </h1>
         </div>
 
@@ -237,6 +351,7 @@ const Login = () => {
             >
               EMAIL ADDRESS
             </label>
+
             <div style={{ position: "relative" }}>
               <input
                 type="email"
@@ -255,25 +370,44 @@ const Login = () => {
                   letterSpacing: "0.12em",
                   textTransform: "uppercase",
                   background: "transparent",
-                  border: `1px solid ${focused === "email" ? T.C : T.IK}`,
+                  border: `1px solid ${
+                    focused === "email"
+                      ? T.C
+                      : T.IK
+                  }`,
                   outline: "none",
                   color: T.IK,
-                  transition: "border-color 0.15s, box-shadow 0.15s",
+                  transition:
+                    "border-color 0.15s, box-shadow 0.15s",
                   boxSizing: "border-box",
-                  boxShadow: focused === "email" ? `0 0 0 3px ${T.C}15` : "none",
+                  boxShadow:
+                    focused === "email"
+                      ? `0 0 0 3px ${T.C}15`
+                      : "none",
                 }}
               />
+
               <div
                 style={{
                   position: "absolute",
                   left: 14,
                   top: "50%",
                   transform: "translateY(-50%)",
-                  color: focused === "email" ? T.C : T.LIGHT_IK,
+                  color:
+                    focused === "email"
+                      ? T.C
+                      : T.LIGHT_IK,
                   transition: "color 0.15s",
                 }}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
                   <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
                   <polyline points="22,6 12,13 2,6" />
                 </svg>
@@ -282,7 +416,7 @@ const Login = () => {
           </div>
 
           {/* Password */}
-          <div style={{ marginBottom: 32 }}>
+          <div style={{ marginBottom: 24 }}>
             <label
               style={{
                 display: "block",
@@ -296,6 +430,7 @@ const Login = () => {
             >
               PASSWORD
             </label>
+
             <div style={{ position: "relative" }}>
               <input
                 type={showPassword ? "text" : "password"}
@@ -313,32 +448,61 @@ const Login = () => {
                   fontWeight: 900,
                   letterSpacing: "0.12em",
                   background: "transparent",
-                  border: `1px solid ${focused === "password" ? T.C : T.IK}`,
+                  border: `1px solid ${
+                    focused === "password"
+                      ? T.C
+                      : T.IK
+                  }`,
                   outline: "none",
                   color: T.IK,
-                  transition: "border-color 0.15s, box-shadow 0.15s",
+                  transition:
+                    "border-color 0.15s, box-shadow 0.15s",
                   boxSizing: "border-box",
-                  boxShadow: focused === "password" ? `0 0 0 3px ${T.C}15` : "none",
+                  boxShadow:
+                    focused === "password"
+                      ? `0 0 0 3px ${T.C}15`
+                      : "none",
                 }}
               />
+
               <div
                 style={{
                   position: "absolute",
                   left: 14,
                   top: "50%",
                   transform: "translateY(-50%)",
-                  color: focused === "password" ? T.C : T.LIGHT_IK,
+                  color:
+                    focused === "password"
+                      ? T.C
+                      : T.LIGHT_IK,
                   transition: "color 0.15s",
                 }}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <rect
+                    x="3"
+                    y="11"
+                    width="18"
+                    height="11"
+                    rx="2"
+                    ry="2"
+                  />
                   <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                 </svg>
               </div>
+
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
+                onClick={() =>
+                  setShowPassword(!showPassword)
+                }
                 style={{
                   position: "absolute",
                   right: 14,
@@ -353,12 +517,31 @@ const Login = () => {
                 }}
               >
                 {showPassword ? (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
                     <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                    <line x1="1" y1="1" x2="23" y2="23" />
+                    <line
+                      x1="1"
+                      y1="1"
+                      x2="23"
+                      y2="23"
+                    />
                   </svg>
                 ) : (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                     <circle cx="12" cy="12" r="3" />
                   </svg>
@@ -371,7 +554,9 @@ const Login = () => {
           <button
             type="submit"
             disabled={loading}
-            onMouseEnter={() => !loading && setBtnHov(true)}
+            onMouseEnter={() =>
+              !loading && setBtnHov(true)
+            }
             onMouseLeave={() => setBtnHov(false)}
             style={{
               width: "100%",
@@ -380,10 +565,22 @@ const Login = () => {
               fontWeight: 900,
               letterSpacing: "0.15em",
               textTransform: "uppercase",
-              background: loading ? T.LIGHT_IK : btnHov ? T.IK : T.C,
+              background: loading
+                ? T.LIGHT_IK
+                : btnHov
+                ? T.IK
+                : T.C,
               color: T.CR,
-              border: `2px solid ${loading ? T.LIGHT_IK : btnHov ? T.IK : T.C}`,
-              cursor: loading ? "not-allowed" : "pointer",
+              border: `2px solid ${
+                loading
+                  ? T.LIGHT_IK
+                  : btnHov
+                  ? T.IK
+                  : T.C
+              }`,
+              cursor: loading
+                ? "not-allowed"
+                : "pointer",
               transition: "all 0.15s",
               opacity: loading ? 0.7 : 1,
               display: "flex",
@@ -402,7 +599,8 @@ const Login = () => {
                     border: `2px solid ${T.CR}40`,
                     borderTopColor: T.CR,
                     borderRadius: "50%",
-                    animation: "spin 0.8s linear infinite",
+                    animation:
+                      "spin 0.8s linear infinite",
                   }}
                 />
                 LOGGING IN...
@@ -410,16 +608,90 @@ const Login = () => {
             ) : (
               <>
                 LOGIN
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <line x1="5" y1="12" x2="19" y2="12" />
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                >
+                  <line
+                    x1="5"
+                    y1="12"
+                    x2="19"
+                    y2="12"
+                  />
                   <polyline points="12 5 19 12 12 19" />
                 </svg>
               </>
             )}
           </button>
 
+          {/* Divider */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              margin: "24px 0",
+            }}
+          >
+            <div
+              style={{
+                flex: 1,
+                height: 1,
+                background: `${T.IK}25`,
+              }}
+            />
+
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 900,
+                letterSpacing: "0.12em",
+                color: T.LIGHT_IK,
+                textTransform: "uppercase",
+              }}
+            >
+              OR
+            </span>
+
+            <div
+              style={{
+                flex: 1,
+                height: 1,
+                background: `${T.IK}25`,
+              }}
+            />
+          </div>
+
+          {/* Google Login */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              marginBottom: 16,
+            }}
+          >
+            <GoogleLogin
+              onSuccess={onGoogleSuccess}
+              onError={onGoogleError}
+              theme="outline"
+              size="large"
+              text="signin_with"
+              shape="rectangular"
+              width={isMobile ? "100%" : "380"}
+            />
+          </div>
+
           {/* Forgot password */}
-          <div style={{ marginTop: 16, textAlign: "center" }}>
+          <div
+            style={{
+              marginTop: 16,
+              textAlign: "center",
+            }}
+          >
             <Link
               to="/forgot-password"
               style={{
@@ -431,8 +703,13 @@ const Login = () => {
                 textDecoration: "none",
                 transition: "color 0.15s",
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = T.C)}
-              onMouseLeave={(e) => (e.currentTarget.style.color = T.LIGHT_IK)}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.color = T.C)
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.color =
+                  T.LIGHT_IK)
+              }
             >
               FORGOT PASSWORD?
             </Link>
@@ -462,6 +739,7 @@ const Login = () => {
             >
               NO ACCOUNT?
             </span>
+
             <Link
               to="/register"
               style={{
@@ -476,12 +754,29 @@ const Login = () => {
                 gap: 4,
                 transition: "color 0.15s",
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = T.IK)}
-              onMouseLeave={(e) => (e.currentTarget.style.color = T.C)}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.color = T.IK)
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.color = T.C)
+              }
             >
               SIGN UP
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <line x1="5" y1="12" x2="19" y2="12" />
+
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <line
+                  x1="5"
+                  y1="12"
+                  x2="19"
+                  y2="12"
+                />
                 <polyline points="12 5 19 12 12 19" />
               </svg>
             </Link>
@@ -490,8 +785,22 @@ const Login = () => {
       </div>
 
       <style>{`
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+
+        @keyframes slideIn {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
       `}</style>
     </div>
   );

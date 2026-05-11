@@ -42,3 +42,7 @@ class UserResponse(BaseModel):
 class LoginResponse(BaseModel):
     user: UserResponse
     tokens: dict
+
+class GoogleAuthRequest(BaseModel):
+    token: str 
+    role: str = "customer"
