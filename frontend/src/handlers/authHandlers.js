@@ -27,15 +27,38 @@ export const handlePhoneLogin = async (data) => {
   }
 };
 
-export const handleGoogleAuth = async (token, role = "customer") => {
-  const response = await api.post("/auth/login/google", {
-    token, role,
-  })
+// export const handleGoogleAuth = async (token, role = "customer") => {
+//   const response = await api.post("/auth/login/google", {
+//     token, role,
+//   })
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.detail || "Google authentication failed");
+//   if (!response.ok) {
+//     const errorData = await response.json();
+//     throw new Error(errorData.detail || "Google authentication failed");
+//   }
+
+//   return response.json();
+// };
+
+export const handleGoogleAuth = async (
+  token,
+  role = "customer"
+) => {
+  try {
+    const response = await api.post(
+      "/auth/login/google",
+      {
+        token,
+        credential: token,
+        role,
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    throw (
+      error.response?.data?.detail ||
+      "Google authentication failed"
+    );
   }
-
-  return response.json();
 };
