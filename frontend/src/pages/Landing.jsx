@@ -83,40 +83,7 @@ const Hero = () => {
         <p style={{ maxWidth: 500, fontSize: 13, lineHeight: 1.8, color: T.LIGHT_IK, fontFamily: "Georgia, serif", fontWeight: 400, margin: "0 0 40px" }}>
           Book verified plumbers, electricians, cleaners, tutors and more — across Pakistan's major cities. Transparent pricing. Background-checked professionals. Instant confirmation.
         </p>
-
-        {/* Search bar */}
-        <div style={{ display: "flex", border: `2px solid ${T.IK}`, marginBottom: 16 }}>
-          <div style={{ display: "flex", alignItems: "center", padding: "0 14px", borderRight: `1px solid ${T.IK}`, color: T.LIGHT_IK }}>
-            <span style={{ fontSize: 14 }}>⌕</span>
-          </div>
-          <input
-            type="text" value={query} onChange={e => setQuery(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && go()}
-            placeholder="WHAT SERVICE DO YOU NEED?"
-            style={{ flex: 1, padding: "15px 16px", fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", background: "transparent", border: "none", outline: "none", color: T.IK }}
-          />
-          <button
-            onClick={go}
-            onMouseEnter={() => setSearchHov(true)} onMouseLeave={() => setSearchHov(false)}
-            style={{ padding: "15px 28px", fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", background: searchHov ? T.IK : T.C, color: T.CR, border: "none", borderLeft: `2px solid ${T.IK}`, cursor: "pointer", transition: "all 0.15s", flexShrink: 0, whiteSpace: "nowrap" }}>
-            SEARCH →
-          </button>
-        </div>
-
-        {/* Chips */}
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
-          <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", color: T.LIGHT_IK, marginRight: 4 }}>POPULAR:</span>
-          {QUICK_CHIPS.map(s => {
-            const [h, setH] = useState(false);
-            return (
-              <button key={s} onClick={() => navigate(`/services?search=${s}`)}
-                onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
-                style={{ border: `1px solid ${h ? T.C : T.IK}`, padding: "5px 12px", fontSize: 9, fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase", background: h ? T.C : "transparent", color: h ? T.CR : T.IK, cursor: "pointer", transition: "all 0.15s" }}>
-                {s}
-              </button>
-            );
-          })}
-        </div>
+        
       </div>
 
       {/* Stats panel */}
