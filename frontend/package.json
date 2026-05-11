@@ -14,11 +14,8 @@
     "@reduxjs/toolkit": "^2.11.2",
     "@tailwindcss/vite": "^4.3.0",
     "axios": "^1.16.0",
-<<<<<<< HEAD
     "lucide-react": "^1.14.0",
-=======
     "firebase": "^12.13.0",
->>>>>>> 6e6846c (Add: Oauth flow)
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-hot-toast": "^2.6.0",
