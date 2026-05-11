@@ -22,7 +22,7 @@ import ChatPage          from "./pages/ChatPage";
 import Wallet            from "./pages/Wallet";
 import { Provider }      from "react-redux";
 import { store }         from "./store/store";
-import AdminDashboard from "./pages/AdminDashboard";
+import AdminDashboard from "./pages/Admindashboard";
 
 // Global support chat widget
 import SupportChat from "./components/AISupport";
