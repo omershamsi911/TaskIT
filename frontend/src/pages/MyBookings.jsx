@@ -261,11 +261,23 @@ const MyBookings = () => {
             }}
           >
             {bookings.map((booking) => {
-              const isCustomer =
-                currentUser.id === booking.user_id;
+              const providerUserId =
+              booking.provider?.user_id ?? null;
 
-              const isProviderView =
-                currentUser.id === booking.provider_id;
+            const isCustomer =
+              currentUser.id === booking.user_id;
+
+           const isProviderView =
+  currentUser.id === booking.provider_user_id;
+  
+            console.group(`Booking #${booking.id}`);
+            console.log("Current User:", currentUser);
+            console.log("booking.user_id (customer):", booking.user_id);
+            console.log("booking.provider_id (provider table id):", booking.provider_id);
+            console.log("booking.provider.user_id (provider user id):", providerUserId);
+            console.log("isCustomer:", isCustomer);
+            console.log("isProviderView:", isProviderView);
+            console.groupEnd();
 
               const statusColor =
                 STATUS_COLORS[booking.status] || {

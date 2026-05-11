@@ -13,11 +13,13 @@ class BookingResponse(BaseModel):
     id: int
     user_id: int
     provider_id: int
+    provider_user_id: int | None = None
+
     service_id: int
     status: str
-    description: Optional[str] = None
-    scheduled_at: datetime
+    description: str | None
     address: str
+    scheduled_at: datetime
     created_at: datetime
 
     class Config:
